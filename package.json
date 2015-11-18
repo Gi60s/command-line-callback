@@ -1,0 +1,31 @@
+{
+  "name": "command-line-callback",
+  "version": "1.0.0",
+  "description": "Implement a command line interface that calls functions within your application.",
+  "main": "index.js",
+  "dependencies": {
+    "command-line-args": "^2.1.1"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gi60s/command-line-callback.git"
+  },
+  "keywords": [
+    "command",
+    "cli",
+    "args",
+    "option",
+    "argument",
+    "parse",
+    "argv",
+    "callback",
+    "usage"
+  ],
+  "author": "James Speirs <james.speirs@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gi60s/command-line-callback/issues"
+  },
+  "homepage": "https://github.com/Gi60s/command-line-callback#readme"
+}

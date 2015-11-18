@@ -60,16 +60,6 @@ Either one of these commands will output basic help for all defined commands:
 
 The API has several methods that will help you to define and call commands.
 
-### evaluate
-
-**evalute()**
-
-Evaluate the command line args that were used to start the application and call the associated command. Any output will be sent to the console.
-
-#### Example
-
-	require('command-line-callback').evaluate();
-
 ### define
 
 **define(commandName, callback, [configuration])**
@@ -99,6 +89,18 @@ Define a command that should be accessible from the command line by using the sp
 	
 	//define the command: 'myCommand'
 	clc.define('myCommand', callback, configuration);
+
+### evaluate
+
+**evalute()**
+
+Evaluate the command line args that were used to start the application and call the associated command. This should be called after all commands have been defined. Any output will be sent to the console.
+
+**Important!!!** If you don't call this function in your code somewhere then the command line will never be evaluated.
+
+#### Example
+
+	require('command-line-callback').evaluate();
 
 ### execute
 
@@ -174,34 +176,36 @@ Get a list of defined commands, optionally limited to only non-aliases.
 
 The configuration object defines the usage for a command and it is also used to provide command help.
 
-The structure of this configuration object is founded on the configuration for the [command-line-args](https://www.npmjs.com/package/command-line-args) module which is founded on the [command-line-usage](https://www.npmjs.com/package/command-line-usage) module. To understand how to configure those options in detail, you'll want to visit the pages for those modules.
+The structure of this configuration object is founded on the configuration for the [command-line-args](https://www.npmjs.com/package/command-line-args) module which is founded on the [command-line-usage](https://www.npmjs.com/package/command-line-usage) module. To understand how to configure those options in detail, you'll want to visit the pages for those modules. Until then, here is a brief example of how you configure those options for this module. Properties that are used only by this module (as opposed to command-line-usage and command-line-args) are listed as such:
 
-Beyond that foundational configuration here are a few things you need to know:
+    {
+        description: 'a description of what the command does',
+        options:[
+            {
+                name: 'verbose',
+                alias: 'v',
+                type: Boolean
+            },
+            {
+                name: 'src',
+                type: String,
+                multiple: true,
+                defaultOption: true,
+                required: true                                  //this module only
+            },
+            {
+                name: 'timeout',
+                alias: 't',
+                type: Number,
+                transform: function(value) {                    //this module only
+                    if (value < 0) value = 0;
+                    return Math.round(value);
+                }
+            }
+        ]		
+    }
 
- 1. You should not include the title property because it will automatically be set to the command name.
- 2. You should create a property named *options* and define the command-line-args configuration within that property.
- 3. You can add a property named *alias" that takes an array of strings to define commands that point to this same command.
+An explanation on the properties specific to this module:
 
-### Example
-
-	{
-		alias: ['alternateCommandName'],
-		description: 'a description of what the command does',
-		options:[
-			{
-				name: 'verbose',
-				alias: 'v',
-				type: Boolean
-			},
-			{
-				name: 'src',
-				type: String, multiple: true,
-				defaultOption: true
-			},
-			{
-				name: 'timeout',
-				alias: 't',
-				type: Number
-			}
-		]		
-	}
+ - **required** - If set to true then this option will automatically throw an error if that option hasn't been supplied.
+ - **transform** - A function that takes the value passed in and whatever it returns is what is used for that value when the callback is called.
