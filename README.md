@@ -15,7 +15,7 @@ The [COMMAND] specified is linked to a callback that will get called once all [O
 
 Additionally, this module implements a documenting feature where descriptions of commands and options can easily be viewed in the terminal.
 
-##Installation
+## Installation
 
 The easiest way to install this module is using npm.
 
