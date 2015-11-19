@@ -1,3 +1,6 @@
+[![view on npm](http://img.shields.io/npm/v/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)
+[![npm module downloads](http://img.shields.io/npm/dt/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)
+
 # Command Line Callback
 
 This module makes it easier to implement a command line interface with a NodeJS application. It supports the following command structures:
