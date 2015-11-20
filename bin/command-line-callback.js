@@ -234,11 +234,7 @@ function commandHelp() {
         var cmd = commandStore[commandName];
         var content;
         content = '  ' + wordWrap.bold(commandName) + wordWrap.makeSpaces(descriptionStartColumn - commandName.length);
-        if (cmd.command !== commandName) {
-            content += '(Alias: see ' + wordWrap.italic(cmd.command) + ')'
-        } else {
-            content += (cmd.configuration.description || '');
-        }
+        content += (cmd.configuration.description || '');
         result += wordWrap(content, { hangingLineIndent: descriptionStartColumn + 2 }) + '\n';
     });
 
