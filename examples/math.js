@@ -13,77 +13,78 @@ var clc = require('../index.js');
 
 //define a command interface to call the add function
 clc.define('add', add, {
-    description: 'Add two numbers together',
+    description: 'Add two numbers together.',
+    help: 'The --first option is required (with a value) for this command to execute. The --second option is optional with a default value of zero.',
     synopsis: [
         '[OPTIONS]...',
         '--first 1 --second 2',
-        'add -f 1 -s 2'
+        '-f 1 -s 2'
     ],
-    options: [
-        {
-            name: 'first',
+    groups: {
+        numbers: 'Numbers'
+    },
+    options: {
+        first: {
             alias: 'f',
             description: 'The first number',
+            help: 'This option is required',
             type: Number,
-            defaultValue: 0
+            required: true
         },
-        {
-            name: 'second',
+        second: {
             alias: 's',
             description: 'The second number',
             type: Number,
             defaultValue: 0
         }
-    ]
+    }
 });
 
 //define a command interface to call the sum function
 clc.define('sum', sum, {
-    description: 'Add multiple numbers together',
+    description: 'Add multiple numbers together.',
+    help: 'You can add any number of arguments to be summed to this command.',
     synopsis: [
         '[OPTIONS]...',
         '[NUMBERS]...',
         '-n 1 -n 2 --number 3',
-        'sum 1 2 3'
+        '1 2 3'
     ],
-    options: [
-        {
-            name: 'number',
+    defaultOption: 'number',
+    options: {
+        number: {
             alias: 'n',
             description: 'A number to add to the sum',
             type: Number,
             multiple: true,
-            defaultOption: true,
             required: true
         }
-    ]
+    }
 });
 
 //define a command interface to call the sum function after transforming inputs to absolute values
 clc.define('sum-absolute', sum, {
-    description: 'Add the absolute value of multiple numbers together',
+    description: 'Add the absolute value of multiple numbers together.',
+    help: 'You can add any number of arguments to be summed to this command.',
     synopsis: [
         '[OPTIONS]...',
         '[NUMBERS]...',
         '-n 1 -n -2 --number 3',
         '1 -2 3'
     ],
-    options: [
-        {
-            name: 'number',
+    defaultOption: 'number',
+    options: {
+        number: {
             alias: 'n',
             description: 'A number to add to the sum',
             type: Number,
             multiple: true,
-            defaultOption: true,
             required: true,
-            transform: function(values) {
-                return values.map(function(value) {
-                    return Math.abs(value);
-                });
+            transform: function (value) {
+                return Math.abs(value);
             }
         }
-    ]
+    }
 });
 
 //evaluate the command line args used to start this app

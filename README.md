@@ -41,6 +41,9 @@ The easiest way to install this module is using npm.
 	
 	//define the command: 'myCommand'
 	clc.define('myCommand', callback, configuration);
+	
+	//evaluate the command line arguments
+	clc.evaluate();
 
 If you saved this in a file named app.js then you'd be able to execute the code in the callback by typing the following into the terminal:
 
