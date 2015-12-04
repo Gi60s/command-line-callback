@@ -27,7 +27,7 @@ exports.normalize = function(optionsConfiguration, valuesMap, errors) {
 
     //normalize each value
     Object.keys(valuesMap).forEach(function(name) {
-        result[name] = exports.normalizeValue(config, valuesMap[name], errors);
+        result[name] = exports.normalizeValue(config[name], valuesMap[name], errors);
     });
 
     return result;
@@ -65,6 +65,7 @@ exports.normalizeValue = function(optionConfiguration, value, name, errors) {
     function normalize(value) {
         value = config.transform(value);
         if (!config.validator(value)) reportError(errors, 'Option validation failed' + errName + '.');
+        return value;
     }
 
     if (config.multiple) {

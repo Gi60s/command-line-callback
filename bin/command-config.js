@@ -40,11 +40,12 @@ exports.normalize = function(configuration) {
     var result = configuration;
     var order;
 
+    if (!is.plainObject(configuration)) throw new Error('Invalid configuration. It must be an object. Received: ' + configuration);
     if (!exports.isNormalized(configuration)) {
         result = Object.assign({}, configuration);
         processProperty(result, 'description', '', 'a string', is.string);
         processProperty(result, 'defaultOption', '', 'a string', is.string);
-        processProperty(result, 'examples', {}, 'an array of objects like { title: "foo", body: "bar" }', is.arrayOfSections);
+        processProperty(result, 'examples', [], 'an array of objects like { title: "foo", body: "bar" }', is.arrayOfSections);
         processProperty(result, 'groups', {}, 'an object mapping group names to string labels', is.objectStringMap);
         processProperty(result, 'help', '', 'a string', is.string);
         processProperty(result, 'options', {}, 'a plain object', is.object);
@@ -64,6 +65,7 @@ exports.normalize = function(configuration) {
 exports.normalizeOption = function(option) {
     var result = option;
 
+    if (!is.plainObject(option)) throw new Error('Invalid configuration option. It must be an object. Received: ' + configuration);
     if (!exports.isNormalized(option)) {
         result = Object.assign({}, option);
         processOption(result, 'alias', '', 'a string of length 1', is.alias);

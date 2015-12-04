@@ -22,14 +22,17 @@ Object.defineProperty(exports, 'command', {
 
 /**
  * Generate a values map from the command line arguments.
- * @param {string} defaultOption
+ * @param {object} configuration
  * @param {string[]} args
  * @returns {object}
  */
-exports.map = function(defaultOption, args) {
+exports.map = function(configuration, args) {
+    var aliasMap;
     var ar;
     var arg;
+    var config;
     var current;
+    var defaultOption;
     var i;
     var map = {};
 
@@ -42,13 +45,17 @@ exports.map = function(defaultOption, args) {
         if (!current && defaultOption) {
             if (!map.hasOwnProperty(defaultOption)) map[defaultOption] = [];
             map[defaultOption].push(value);
-        } else {
+        } else if (current) {
             map[current].push(value);
         }
         current = false;
     }
 
     if (!args) args = exports.args;
+
+    config = commandConfig.normalize(configuration);
+    defaultOption = config.defaultOption;
+    aliasMap = commandConfig.aliasMap(config.options);
 
     for (i = 0; i < args.length; i++) {
         arg = args[i];
@@ -61,7 +68,8 @@ exports.map = function(defaultOption, args) {
 
         if (/^-[a-z]/i.test(arg)) {
             arg = arg.substr(1).split('');
-            arg.forEach(create);
+            arg.map(function(name) { return aliasMap.hasOwnProperty(name) ? aliasMap[name] : name; })
+                .forEach(create);
 
         } else if (/^--[a-z]/i.test(arg)) {
             create(arg.substr(2));
@@ -81,16 +89,14 @@ exports.map = function(defaultOption, args) {
  */
 exports.options = function(configuration, args) {
     var config = commandConfig.normalize(configuration);
-    var aliasMap = commandConfig.aliasMap(config.options);
-    var argMap = exports.map(config.defaultOption, args);
+    var argMap = exports.map(config, args);
     var data = {};
     Object.keys(argMap).forEach(function(name) {
         var values = argMap[name];
         var optConfig;
-        var optName = aliasMap.hasOwnProperty(name) ? aliasMap[name] : name;
 
-        if (config.options.hasOwnProperty(optName)) {
-            optConfig = config.options[optName];
+        if (config.options.hasOwnProperty(name)) {
+            optConfig = config.options[name];
 
             //if the array is empty then add one undefined value
             if (values.length === 0) values[0] = void 0;
@@ -100,11 +106,11 @@ exports.options = function(configuration, args) {
                 return argParser.parse(optConfig.type, value);
             });
 
-            //if not multiple then get the last item
+            //if not multiple then get the last item, otherwise concat with previous values
             if (!optConfig.multiple) values = values[values.length - 1];
 
             //store the value
-            data[optName] = values;
+            data[name] = values;
         }
     });
     return commandOptions.normalize(config.options, data);
