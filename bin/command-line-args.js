@@ -1,36 +1,54 @@
-var constructors            = require('./constructors');
+var argParser               = require('./arg-parser');
+var commandConfig           = require('./command-config');
+var commandOptions          = require('./command-options');
 
+/**
+ * Get the input arguments.
+ */
+Object.defineProperty(exports, 'args', {
+    get: function() {
+        return Array.prototype.slice.call(process.argv, 3);
+    }
+});
 
-module.exports = args;
+/**
+ * Get the name of the command specified from the input arguments.
+ */
+Object.defineProperty(exports, 'command', {
+    get: function() {
+        return process.argv[2];
+    }
+});
 
-
-
-function args(defaultOption, input) {
+/**
+ * Generate a values map from the command line arguments.
+ * @param {string} defaultOption
+ * @param {string[]} args
+ * @returns {object}
+ */
+exports.map = function(defaultOption, args) {
     var ar;
     var arg;
-    var args = input || Array.prototype.slice.call(process.argv, 2);
     var current;
     var i;
     var map = {};
-    var name;
-    var unassigned = [];
 
     function create(name) {
-        if (!map.hasOwnProperty(name)) map[name] = [ void 0 ];
+        if (!map.hasOwnProperty(name)) map[name] = [];
         current = name;
     }
 
     function append(value) {
-        var name = current ? current : defaultOption;
-        if (!name) {
-            unassigned.push(value);
+        if (!current && defaultOption) {
+            if (!map.hasOwnProperty(defaultOption)) map[defaultOption] = [];
+            map[defaultOption].push(value);
         } else {
-            if (!map.hasOwnProperty(name)) map[name] = [];
-            if (map[name].length === 1 && typeof map[name][0] === 'undefined') map[name] = [];
-            map[name].push(value);
+            map[current].push(value);
         }
         current = false;
     }
+
+    if (!args) args = exports.args;
 
     for (i = 0; i < args.length; i++) {
         arg = args[i];
@@ -53,141 +71,41 @@ function args(defaultOption, input) {
         }
     }
 
-    return {
-        assignments: map,
-        unassigned: unassigned
-    };
-}
-
-args.defineConstructor = function(fnConstructor) {
-    var index;
-    if (typeof fnConstructor !== 'function') throw new Error('Defined constructor must be a function. Received: ' + fnConstructor);
-    index = constructors.indexOf(fnConstructor);
-    if (index === -1) constructors.push(fnConstructor);
+    return map;
 };
 
-args.options = function(configuration, defaultOption, input) {
-    var aliasMap = {};
-    var commandLineErrors = {};
-    var data = args(defaultOption, input);
-    var requires = {};
-    var results = {};
+/**
+ * Get a normalized and validated configuration object from command line arguments.
+ * @param {object} configuration The command configuration.
+ * @param {string[]} args
+ */
+exports.options = function(configuration, args) {
+    var config = commandConfig.normalize(configuration);
+    var aliasMap = commandConfig.aliasMap(config.options);
+    var argMap = exports.map(config.defaultOption, args);
+    var data = {};
+    Object.keys(argMap).forEach(function(name) {
+        var values = argMap[name];
+        var optConfig;
+        var optName = aliasMap.hasOwnProperty(name) ? aliasMap[name] : name;
 
-    //configuration validation and normalization
-    Object.keys(configuration).forEach(function(name) {
-        var config = Object.assign({}, configuration[name]);
+        if (config.options.hasOwnProperty(optName)) {
+            optConfig = config.options[optName];
 
-        //alias
-        if (config.hasOwnProperty('alias')) {
-            if (typeof config.alias !== 'string' || config.alias.length !== 1) {
-                throw new Error('Option configuration "' + name +
-                    '" "alias" must be a string of length 1. Received: ' +
-                    config.alias);
-            }
-            aliasMap[config.alias] = name;
-        }
+            //if the array is empty then add one undefined value
+            if (values.length === 0) values[0] = void 0;
 
-        //description
-        if (!config.hasOwnProperty('description')) config.description = '';
-        if (typeof config.description !== 'string') {
-            throw new Error('Option configuration "' + name +
-                '" "description" must be a string. Received: ' + config.description);
-        }
+            //convert from argument string values to final representations
+            values = values.map(function(value) {
+                return argParser.parse(optConfig.type, value);
+            });
 
-        //help
-        if (!config.hasOwnProperty('help')) config.help = '';
-        if (typeof config.help !== 'string') {
-            throw new Error('Option configuration "' + name +
-                '" "help" must be a string. Received: ' + config.help);
-        }
+            //if not multiple then get the last item
+            if (!optConfig.multiple) values = values[values.length - 1];
 
-        //multiple
-        config.multiple = config.hasOwnProperty('multiple') ? !!config.multiple : false;
-
-        //required
-        config.required = config.hasOwnProperty('required') ? !!config.required : false;
-        if (config.required) requires[name] = true;
-
-        //transform
-        if (!config.hasOwnProperty('transform')) config.transform = function(value, original) { return value };
-        if (typeof config.transform !== 'function') {
-            throw new Error('Option configuration "' + name +
-                '" "transform" must be a function. Received: ' + config.transform);
-        }
-
-        //type
-        if (!config.hasOwnProperty('type')) config.type = Boolean;
-        if (typeof config.type !== 'function') {
-            throw new Error('Option configuration "' + name +
-                '" "type" must be a function. Received: ' + config.type);
-        }
-
-        //validator
-        if (!config.hasOwnProperty('validator')) config.validator = function(value, original, args, config) { return true };
-        if (typeof config.validator !== 'function') {
-            throw new Error('Option configuration "' + name +
-                '" "validator" must be a function. Received: ' + config.validator);
-        }
-
-        configuration[name] = config;
-    });
-
-    //acquire values
-    Object.keys(data.assignments).forEach(function(name) {
-        var config;
-        var values = data.assignments[name];
-
-        function typeConversion(value) {
-            return constructors.run(config.type, value);
-        }
-
-        function transform(value, index) {
-            return config.transform(value, values[index]);
-        }
-
-        function validate(value, index) {
-            if (!config.validator(value, values[index], data, config)) {
-                commandLineErrors[name] = 'validate';
-                return void 0;
-            }
-            return value;
-        }
-
-        //get official name from alias
-        if (aliasMap.hasOwnProperty(name)) name = aliasMap[name];
-
-        //remove item from requires list
-        if (requires[name]) delete requires[name];
-
-        //get the value
-        if (configuration.hasOwnProperty(name)) {
-            config = configuration[name];
-
-            results[name] = values
-                .map(typeConversion)
-                .map(transform)
-                .map(validate);
-
-            if (!config.multiple) results[name] = results[name][results[name].length - 1];
+            //store the value
+            data[optName] = values;
         }
     });
-
-    //add default values
-    Object.keys(configuration).forEach(function(name) {
-        var option = configuration[name];
-        if (option.hasOwnProperty('defaultValue') && !results.hasOwnProperty(name)) {
-            results[name] = option.defaultValue;
-            if (requires[name]) delete requires[name];
-        }
-    });
-
-    //check for missing required values
-    Object.keys(requires).forEach(function(name) {
-        commandLineErrors[name] = 'required';
-    });
-
-    return {
-        errors: Object.keys(commandLineErrors).length > 0 ? commandLineErrors : null,
-        options: results
-    };
+    return commandOptions.normalize(config.options, data);
 };

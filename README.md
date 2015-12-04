@@ -182,33 +182,48 @@ Get a list of defined commands, optionally limited to only non-aliases.
 
 The configuration object defines the usage for a command and it is also used to provide command help.
 
-The structure of this configuration object is founded on the configuration for the [command-line-args](https://www.npmjs.com/package/command-line-args) module which is founded on the [command-line-usage](https://www.npmjs.com/package/command-line-usage) module. To understand how to configure those options in detail, you'll want to visit the pages for those modules. Until then, here is a brief example of how you configure those options for this module. Properties that are used only by this module (as opposed to command-line-usage and command-line-args) are listed as such:
+The following is a full example of a configuration object. A description of the properties follows the example.
 
     {
-        description: 'a description of what the command does',
-        options:[
+        description: 'Get the absolute sum of numbers.',
+        defaultOption: 'number',
+        examples: [
             {
-                name: 'verbose',
-                alias: 'v',
-                type: Boolean
-            },
-            {
-                name: 'src',
-                type: String,
-                multiple: true,
-                defaultOption: true,
-                required: true                                  //this module only
-            },
-            {
-                name: 'timeout',
-                alias: 't',
-                type: Number,
-                transform: function(value) {                    //this module only
-                    if (value < 0) value = 0;
-                    return Math.round(value);
-                }
+                title: 'Example 1',
+                body: 'This is an example.'
             }
-        ]		
+        ],
+        groups: {
+            math: 'Math Options',
+            message: 'Message Options'
+        },
+        help: 'All numbers provided made positive and then added to the sum.',
+        options: {
+            number: {
+                alias: 'n',
+                defaultValue: 0,
+                description: 'A number to add to the sum.',
+                group: 'math',
+                help: 'Each number can be positive, or negative',
+                multiple: true,
+                required: false,
+                transform: function(value) {
+                    return Math.abs(value);
+                },
+                type: Number,
+                validator: function(value) {
+                    return !isNaN(value);
+                }
+            },
+            message: {
+                description: 'A message to put in front of the summed result.',
+                required: true
+            }
+        },
+        synopsis: [
+            '[OPTIONS]...',
+            '--number 5 -n 3 --message "Hello, World!"'
+        ]
     }
 
 An explanation on the properties specific to this module:
