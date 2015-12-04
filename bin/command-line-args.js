@@ -6,6 +6,7 @@ var commandOptions          = require('./command-options');
  * Get the input arguments.
  */
 Object.defineProperty(exports, 'args', {
+    enumerable: true,
     get: function() {
         return Array.prototype.slice.call(process.argv, 3);
     }
@@ -15,6 +16,7 @@ Object.defineProperty(exports, 'args', {
  * Get the name of the command specified from the input arguments.
  */
 Object.defineProperty(exports, 'command', {
+    enumerable: true,
     get: function() {
         return process.argv[2];
     }
