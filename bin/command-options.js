@@ -1,20 +1,21 @@
 var commandConfig           = require('./command-config');
+var OptionError             = require('./option-error');
 
 /**
  * Get an object with validated and normalized options from a values map.
  * @param {object} optionsConfiguration
  * @param {object} valuesMap
- * @param {Array} [errors] An array to store errors into. If omitted then error will be thrown if encountered.
  * @returns {object}
  */
-exports.normalize = function(optionsConfiguration, valuesMap, errors) {
+exports.normalize = function(optionsConfiguration, valuesMap) {
     var config = commandConfig.normalizeOptions(optionsConfiguration);
+    var errors = [];
     var result = {};
     valuesMap = Object.assign({}, valuesMap);
 
     //find required errors
     exports.missingRequires(config, valuesMap).forEach(function(name) {
-        reportError(errors, 'Missing required option: ' + name);
+        errors.push('Missing required option: ' + name);
     });
 
     //merge default values with values map
@@ -27,8 +28,21 @@ exports.normalize = function(optionsConfiguration, valuesMap, errors) {
 
     //normalize each value
     Object.keys(valuesMap).forEach(function(name) {
-        result[name] = exports.normalizeValue(config[name], valuesMap[name], errors);
+        try {
+            result[name] = exports.normalizeValue(config[name], valuesMap[name]);
+        } catch (e) {
+            if (e instanceof OptionError) {
+                errors.push(e.message);
+            } else {
+                throw e;
+            }
+        }
     });
+
+    //throw all errors in one
+    if (errors.length > 0) {
+        throw new OptionError('One or more errors occurred while building a configuration from a value map: \n  ' + errors.join('\n  '));
+    }
 
     return result;
 };
@@ -53,10 +67,9 @@ exports.missingRequires = function(optionsConfiguration, valuesMap) {
  * @param {object} optionConfiguration
  * @param {object} value
  * @param {string} [name] The name of the option. Used for error reporting.
- * @param {Array} [errors] An array to store errors into. If omitted then error will be thrown if encountered.
  * @returns {Array}
  */
-exports.normalizeValue = function(optionConfiguration, value, name, errors) {
+exports.normalizeValue = function(optionConfiguration, value, name) {
     var config = commandConfig.normalizeOption(optionConfiguration);
     var errName = name ? ' for option: ' + name : '';
     var isArray = Array.isArray(value);
@@ -64,27 +77,17 @@ exports.normalizeValue = function(optionConfiguration, value, name, errors) {
 
     function normalize(value) {
         value = config.transform(value);
-        if (!config.validator(value)) reportError(errors, 'Option validation failed' + errName + '.');
+        if (!config.validator(value)) throw new OptionError('Option validation failed' + errName + ' with value: ' + value);
         return value;
     }
 
     if (config.multiple) {
-        if (!isArray) throw new Error('Invalid option value' + errName + '. Expected an array. Received: ' + value);
+        if (!isArray) throw new OptionError('Invalid option value' + errName + '. Expected an array. Received: ' + value);
         result = value.map(normalize);
     } else {
-        if (isArray && config.type !== Array) throw new Error('Invalid option value' + errName + '. Did not expect an array.');
+        if (isArray && config.type !== Array) throw new OptionError('Invalid option value' + errName + '. Did not expect an array.');
         result = normalize(value);
     }
 
     return result;
 };
-
-
-
-function reportError(store, message) {
-    if (Array.isArray(store)) {
-        store.push(message);
-    } else {
-        throw new Error(message);
-    }
-}
