@@ -5,12 +5,14 @@ var OptionError             = require('./option-error');
  * Get an object with validated and normalized options from a values map.
  * @param {object} optionsConfiguration
  * @param {object} valuesMap
+ * @param {boolean} [optionsOnly=true] Set to false to have the returned value be an object with option and error properties.
  * @returns {object}
  */
-exports.normalize = function(optionsConfiguration, valuesMap) {
+exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
     var config = commandConfig.normalizeOptions(optionsConfiguration);
     var errors = [];
     var result = {};
+    optionsOnly = typeof optionsOnly === 'undefined' ? true : !!optionsOnly;
     valuesMap = Object.assign({}, valuesMap);
 
     //find required errors
@@ -29,7 +31,9 @@ exports.normalize = function(optionsConfiguration, valuesMap) {
     //normalize each value
     Object.keys(valuesMap).forEach(function(name) {
         try {
-            result[name] = exports.normalizeValue(config[name], valuesMap[name]);
+            if (config.hasOwnProperty(name)) {
+                result[name] = exports.normalizeValue(config[name], valuesMap[name], name);
+            }
         } catch (e) {
             if (e instanceof OptionError) {
                 errors.push(e.message);
@@ -40,11 +44,11 @@ exports.normalize = function(optionsConfiguration, valuesMap) {
     });
 
     //throw all errors in one
-    if (errors.length > 0) {
+    if (optionsOnly && errors.length > 0) {
         throw new OptionError('One or more errors occurred while building a configuration from a value map: \n  ' + errors.join('\n  '));
     }
 
-    return result;
+    return optionsOnly ? result : { options: result, errors: errors };
 };
 
 /**

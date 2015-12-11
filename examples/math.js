@@ -36,6 +36,23 @@ clc.define('add', add, {
             description: 'The second number',
             type: Number,
             defaultValue: 0
+        },
+        'bob-bob-bob-blah': {
+            description: 'An object',
+            type: Object,
+            defaultValue: {
+                name: 'bob',
+                age: 5,
+                school: {
+                    name: 'byu',
+                    grade: 'A',
+                    courses: [{ econ: 'A'}]
+                }
+            }
+        },
+        ar: {
+            type: Array,
+            defaultValue: []
         }
     }
 });
@@ -94,12 +111,13 @@ clc.evaluate();
 
 
 
-function add(options) {
-    return options.first + options.second;
+function add(err, options) {
+    if (!err) return options.first + options.second;
 }
 
-function sum(options) {
+function sum(err, options) {
     var result = 0;
+    if (err) throw err;
     if (options.number) {
         options.number.forEach(function (value) {
             result += value;

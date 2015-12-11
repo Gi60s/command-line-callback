@@ -88,11 +88,14 @@ exports.map = function(configuration, args) {
  * Get a normalized and validated configuration object from command line arguments.
  * @param {object} configuration The command configuration.
  * @param {string[]} args
+ * @param {boolean} [optionsOnly=true] Set to false to have the returned value be an object with option and error properties.
+ * @returns {object}
  */
-exports.options = function(configuration, args) {
+exports.options = function(configuration, args, optionsOnly) {
     var config = commandConfig.normalize(configuration);
     var argMap = exports.map(config, args);
     var data = {};
+    optionsOnly = typeof optionsOnly === 'undefined' ? true : !!optionsOnly;
     Object.keys(argMap).forEach(function(name) {
         var values = argMap[name];
         var optConfig;
@@ -115,5 +118,5 @@ exports.options = function(configuration, args) {
             data[name] = values;
         }
     });
-    return commandOptions.normalize(config.options, data);
+    return commandOptions.normalize(config.options, data, optionsOnly);
 };

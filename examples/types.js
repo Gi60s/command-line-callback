@@ -10,8 +10,9 @@ var chalk = require('chalk');
 var clc = require('../index.js');
 
 //define the type function
-function type(options) {
+function type(err, options) {
     var result = '';
+    if (err) throw err;
 
     Object.keys(options).forEach(function(name, index) {
         var value = options[name];

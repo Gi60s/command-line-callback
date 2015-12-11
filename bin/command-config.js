@@ -65,7 +65,7 @@ exports.normalize = function(configuration) {
 exports.normalizeOption = function(option) {
     var result = option;
 
-    if (!is.plainObject(option)) throw new Error('Invalid configuration option. It must be an object. Received: ' + configuration);
+    if (!is.plainObject(option)) throw new Error('Invalid configuration option. It must be an object. Received: ' + option);
     if (!exports.isNormalized(option)) {
         result = Object.assign({}, option);
         processOption(result, 'alias', '', 'a string of length 1', is.alias);
