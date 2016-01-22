@@ -7,7 +7,7 @@ Create git-style command structure that calls functions within your application.
 
 ## Working Example
 
-[Look at a working example](readme/math-example.ms)
+[Look at a working example](readme/math-example.md)
 
 ## Define a Command
 
