@@ -1,4 +1,4 @@
-var argParser               = require('./arg-parser');
+var argParser               = require('./parser');
 var commandConfig           = require('./command-config');
 var commandOptions          = require('./command-options');
 
@@ -39,8 +39,12 @@ exports.map = function(configuration, args) {
     var map = {};
 
     function create(name) {
-        if (!map.hasOwnProperty(name)) map[name] = [];
-        current = name;
+        if (current) map[current].push('');
+        name = dashToCamel(name);
+        if (config.options.hasOwnProperty(name)) {
+            if (!map.hasOwnProperty(name)) map[name] = [];
+            current = name;
+        }
     }
 
     function append(value) {
@@ -81,6 +85,8 @@ exports.map = function(configuration, args) {
         }
     }
 
+    if (current) map[current].push('');
+
     return map;
 };
 
@@ -120,3 +126,11 @@ exports.options = function(configuration, args, optionsOnly) {
     });
     return commandOptions.normalize(config.options, data, optionsOnly);
 };
+
+function dashToCamel(value) {
+    var result = '';
+    value.split('-').forEach(function(v, i) {
+        result += i === 0 ? v : v.substr(0, 1).toUpperCase() + v.substr(1);
+    });
+    return result;
+}

@@ -13,54 +13,46 @@ var clc = require('../index.js');
 
 //define a command interface to call the add function
 clc.define('add', add, {
-    description: 'Add two numbers together.',
-    help: 'The --first option is required (with a value) for this command to execute. The --second option is optional with a default value of zero.',
+    brief: 'Add two numbers together.',
+    description: 'The --first option is required (with a value) for this command to execute. ' +
+    'The --second option is optional with a default value of zero.',
     synopsis: [
         '[OPTIONS]...',
         '--first 1 --second 2',
         '-f 1 -s 2'
     ],
+    sections: [
+        {
+            title: 'Example',
+            body: 'The command: math add --first 1 --second 2\nWill output: 3',
+            beforeOptions: true
+        }
+    ],
     groups: {
-        numbers: 'Numbers'
+        numbers: 'Number Options'
     },
     options: {
         first: {
             alias: 'f',
             description: 'The first number',
-            help: 'This option is required',
             type: Number,
-            required: true
+            required: true,
+            group: 'numbers'
         },
         second: {
             alias: 's',
             description: 'The second number',
             type: Number,
-            defaultValue: 0
-        },
-        'bob-bob-bob-blah': {
-            description: 'An object',
-            type: Object,
-            defaultValue: {
-                name: 'bob',
-                age: 5,
-                school: {
-                    name: 'byu',
-                    grade: 'A',
-                    courses: [{ econ: 'A'}]
-                }
-            }
-        },
-        ar: {
-            type: Array,
-            defaultValue: []
+            defaultValue: 0,
+            group: 'numbers'
         }
     }
 });
 
 //define a command interface to call the sum function
 clc.define('sum', sum, {
-    description: 'Add multiple numbers together.',
-    help: 'You can add any number of arguments to be summed to this command.',
+    brief: 'Add multiple numbers together.',
+    description: 'You can add any number of arguments to be summed to this command.',
     synopsis: [
         '[OPTIONS]...',
         '[NUMBERS]...',
@@ -81,8 +73,8 @@ clc.define('sum', sum, {
 
 //define a command interface to call the sum function after transforming inputs to absolute values
 clc.define('sum-absolute', sum, {
-    description: 'Add the absolute value of multiple numbers together.',
-    help: 'You can add any number of arguments to be summed to this command.',
+    brief: 'Add the absolute value of multiple numbers together.',
+    description: 'You can add any number of arguments to be summed to this command.',
     synopsis: [
         '[OPTIONS]...',
         '[NUMBERS]...',

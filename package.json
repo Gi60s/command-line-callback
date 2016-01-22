@@ -4,10 +4,12 @@
   "description": "Implement a command line interface that calls functions within your application.",
   "main": "index.js",
   "dependencies": {
-    "cli-format": "^1.1.4"
+    "chalk": "^1.1.1",
+    "cli-format": "^1.1.4",
+    "custom-error-instance": "^2.1.1"
   },
   "devDependencies": {
-    "tape": "^4.2.2"
+    "chai": "^3.4.1"
   },
   "repository": {
     "type": "git",

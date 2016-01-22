@@ -1,5 +1,9 @@
 var commandConfig           = require('./command-config');
-var OptionError             = require('./option-error');
+var CustomError             = require('custom-error-instance');
+
+var OptionError = CustomError('OptionError');
+
+
 
 /**
  * Get an object with validated and normalized options from a values map.
@@ -11,6 +15,7 @@ var OptionError             = require('./option-error');
 exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
     var config = commandConfig.normalizeOptions(optionsConfiguration);
     var errors = [];
+    var message;
     var result = {};
     optionsOnly = typeof optionsOnly === 'undefined' ? true : !!optionsOnly;
     valuesMap = Object.assign({}, valuesMap);
@@ -43,9 +48,13 @@ exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
         }
     });
 
+    //camel case properties
+    //result = exports.camelCase(result);
+
     //throw all errors in one
     if (optionsOnly && errors.length > 0) {
-        throw new OptionError('One or more errors occurred while building a configuration from a value map: \n  ' + errors.join('\n  '));
+        message = 'One or more errors occurred while building a configuration from a value map: \n  ' + errors.join('\n  ');
+        throw new OptionError(message);
     }
 
     return optionsOnly ? result : { options: result, errors: errors };
@@ -81,7 +90,7 @@ exports.normalizeValue = function(optionConfiguration, value, name) {
 
     function normalize(value) {
         value = config.transform(value);
-        if (!config.validator(value)) throw new OptionError('Option validation failed' + errName + ' with value: ' + value);
+        if (!config.validate(value)) throw new OptionError('Option validation failed' + errName + ' with value: ' + value);
         return value;
     }
 

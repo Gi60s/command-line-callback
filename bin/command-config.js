@@ -1,4 +1,22 @@
+"use strict";
+// Define command configurations
+
+var CustomError     = require('custom-error-instance');
 var is              = require('./is-type');
+
+var Err = CustomError('CmdCfgError');
+Err.invalid = CustomError(Err, { message: 'Invalid value.', code: 'EINVLD' }, CustomError.factory.expectReceive);
+Err.aliasConflict = CustomError(Err, { code: 'EALIAS' });
+
+
+Object.defineProperty(exports, 'error', {
+    enumerable: false,
+    configurable: true,
+    value: Err,
+    writable: true
+});
+
+
 
 /**
  * Get a map of alias names and the option name that they refer to.
@@ -10,7 +28,15 @@ exports.aliasMap = function(options) {
     var result = {};
     Object.keys(opts).forEach(function(name) {
         var option = opts[name];
-        if (option.hasOwnProperty('alias') && option.alias) result[option.alias] = name;
+        if (option.hasOwnProperty('alias') && option.alias) {
+            if (result.hasOwnProperty(option.alias)) {
+                throw Err.aliasConflict({
+                    message: 'Two options use the same alias: ' + result[option.alias] + ' and ' + name,
+                    conflict: [result[option.alias], name]
+                });
+            }
+            result[option.alias] = name;
+        }
     });
     return result;
 };
@@ -19,7 +45,7 @@ exports.defaultTransform = function (v) {
     return v;
 };
 
-exports.defaultValidator = function () {
+exports.defaultValidate = function () {
     return true
 };
 
@@ -28,7 +54,7 @@ exports.defaultValidator = function () {
  * @param {object} obj
  */
 exports.isNormalized = function(obj) {
-    return obj.__normalized;
+    return obj.hasOwnProperty('__normalized');
 };
 
 /**
@@ -38,17 +64,16 @@ exports.isNormalized = function(obj) {
  */
 exports.normalize = function(configuration) {
     var result = configuration;
-    var order;
 
-    if (!is.plainObject(configuration)) throw new Error('Invalid configuration. It must be an object. Received: ' + configuration);
+    if (!is.plainObject(configuration)) throw Err.invalid({ message: 'Invalid configuration.', expected: 'an object', received: configuration });
     if (!exports.isNormalized(configuration)) {
         result = Object.assign({}, configuration);
+        processProperty(result, 'brief', '', 'a string', is.string);
         processProperty(result, 'description', '', 'a string', is.string);
         processProperty(result, 'defaultOption', '', 'a string', is.string);
-        processProperty(result, 'examples', [], 'an array of objects like { title: "foo", body: "bar" }', is.arrayOfSections);
         processProperty(result, 'groups', {}, 'an object mapping group names to string labels', is.objectStringMap);
-        processProperty(result, 'help', '', 'a string', is.string);
         processProperty(result, 'options', {}, 'a plain object', is.object);
+        processProperty(result, 'sections', [], 'an array of objects like { title: "foo", body: "bar" }', is.arrayOfSections);
         processProperty(result, 'synopsis', [], 'an array of string', is.arrayOfString);
         result.options = exports.normalizeOptions(result.options);
         markAsNormalized(result);
@@ -65,23 +90,23 @@ exports.normalize = function(configuration) {
 exports.normalizeOption = function(option) {
     var result = option;
 
-    if (!is.plainObject(option)) throw new Error('Invalid configuration option. It must be an object. Received: ' + option);
+    if (!is.plainObject(option)) throw Err.invalid({ message: 'Invalid configuration option.', expected: 'an object', received: option });
     if (!exports.isNormalized(option)) {
         result = Object.assign({}, option);
         processOption(result, 'alias', '', 'a string of length 1', is.alias);
         processOption(result, 'description', '', 'a string', is.string);
         processOption(result, 'group', '', 'a string', is.string);
-        processOption(result, 'help', '', 'a string', is.string);
+        processOption(result, 'hidden', false, 'a boolean', is.boolean);
         processOption(result, 'multiple', false, 'a boolean', is.boolean);
         processOption(result, 'required', false, 'a boolean', is.boolean);
         processOption(result, 'transform', exports.defaultTransform, 'a function', is.function);
         processOption(result, 'type', Boolean, 'a function with a defined command line arg parser', is.parserFunction);
-        processOption(result, 'validator', exports.defaultValidator, 'a function', is.function);
+        processOption(result, 'validate', exports.defaultValidate, 'a function', is.function);
 
         if (result.required && result.hasOwnProperty('defaultValue')) {
-            throw new Error('Command configuration option cannot have required as true and a default value because they are mutually exclusive');
-        } else if (!result.required && result.hasOwnProperty('defaultValue') && !result.validator(result.defaultValue)) {
-            throw new Error('Command configuration option defaultValue does not pass validator.');
+            throw Err('Command configuration option cannot have required as true and a default value because they are mutually exclusive');
+        } else if (!result.required && result.hasOwnProperty('defaultValue') && !result.validate(result.defaultValue)) {
+            throw Err('Command configuration option defaultValue does not pass validation.');
         }
 
         markAsNormalized(result);
@@ -99,7 +124,10 @@ exports.normalizeOptions = function(options) {
     var result = options;
 
     if (!is.plainObject(options)) {
-        throw new Error('Command configuration options must be an object map. Received: ' + options);
+        throw Err.invalid({
+            message: 'Command configuration options must be an object map.',
+            received: options
+        });
     }
 
     if (!exports.isNormalized(options)) {
@@ -113,8 +141,6 @@ exports.normalizeOptions = function(options) {
     return result;
 };
 
-
-
 function markAsNormalized(obj) {
     Object.defineProperty(obj, '__normalized', {
         configurable: false,
@@ -124,23 +150,26 @@ function markAsNormalized(obj) {
     });
 }
 
-function processItem(type, map, name, defaultValue, expected, validator, throwErr) {
+function processItem(type, map, name, defaultValue, expected, validate, throwErr) {
     var err;
     var value;
     if (typeof throwErr === 'undefined') throwErr = true;
     if (!map.hasOwnProperty(name)) map[name] = defaultValue;
     value = map[name];
-    if (!validator(value)) {
-        err = new Error('Command configuration ' + type + ' "' + name + '" expected ' + expected + '. Received: ' + value);
+    if (!validate(value)) {
+        err = Err.invalid({
+            message: 'Command configuration ' + type + ' "' + name + '" expected ' + expected,
+            received: value
+        });
     }
     if (err && throwErr) throw err;
     return err;
 }
 
-function processProperty(map, name, defaultValue, expected, validator, throwErr) {
-    return processItem('property', map, name, defaultValue, expected, validator, throwErr);
+function processProperty(map, name, defaultValue, expected, validate, throwErr) {
+    return processItem('property', map, name, defaultValue, expected, validate, throwErr);
 }
 
-function processOption(map, name, defaultValue, expected, validator, throwErr) {
-    return processItem('option', map, name, defaultValue, expected, validator, throwErr);
+function processOption(map, name, defaultValue, expected, validate, throwErr) {
+    return processItem('option', map, name, defaultValue, expected, validate, throwErr);
 }

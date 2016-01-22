@@ -1,4 +1,4 @@
-var argParser           = require('./arg-parser');
+var valueParser           = require('./parser');
 
 exports.alias = function(value) {
     return exports.string(value) && value.length <= 1;
@@ -18,8 +18,8 @@ exports.arrayOfSections = function(value) {
     if (!Array.isArray(value)) return false;
     for (i = 0; i < value.length; i++) {
         if (!exports.object(value[i])) return false;
-        if (!value[i].hasOwnProperty('title')) return false;
-        if (!value[i].hasOwnProperty('body')) return false;
+        if (!value[i].hasOwnProperty('title') || typeof value[i].title !== 'string') return false;
+        if (!value[i].hasOwnProperty('body') || typeof value[i].body !== 'string') return false;
     }
     return true;
 };
@@ -65,11 +65,11 @@ exports.objectStringMap = function(value) {
 };
 
 exports.parserFunction = function(value) {
-    return exports.function(value) && !!argParser.get(value);
+    return exports.function(value) && valueParser.exists(value);
 };
 
 exports.plainObject = function(value) {
-    return exports.object(value) && value.constructor.name === 'Object';
+    return value && exports.object(value) && value.constructor.name === 'Object';
 };
 
 exports.string = function(value) {

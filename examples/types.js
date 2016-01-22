@@ -28,8 +28,8 @@ function type(err, options) {
 
 //define a command interface to call the add function
 clc.define('type', type, {
-    description: 'Specify a parameter from one of many types.',
-    help: 'The --first option is required (with a value) for this command to execute. The --second option is optional with a default value of zero.',
+    brief: 'Specify a parameter from one of many types.',
+    description: 'The --first option is required (with a value) for this command to execute. The --second option is optional with a default value of zero.',
     synopsis: [
         '[OPTIONS]...'
     ],
@@ -52,11 +52,16 @@ clc.define('type', type, {
         array: {
             alias: 'a',
             description: 'An array. Using this option attempts to create an array from the value.',
-            type: Object
+            type: Array
         },
         date: {
             alias: 'd',
             description: 'A date. Using this option attempts to create an date from the value.',
+            type: Date
+        },
+        object: {
+            alias: 'o',
+            description: 'An object. Using this option attempts to create an object from the value.',
             type: Object
         }
     }

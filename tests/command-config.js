@@ -1,158 +1,271 @@
 var config              = require('../bin/command-config');
-var test                = require('tape');
+var expect              = require('chai').expect;
 
-test('Normalize option', function(t) {
-    var input;
-    var output;
+describe('command-config', function() {
 
-    //full build
-    input = {
-        alias: 'n',
-        defaultValue: 0,
-        description: 'A number to add to the sum.',
-        group: 'math',
-        help: 'Each number can be positive, or negative',
-        multiple: true,
-        required: false,
-        transform: transform,
-        type: Number,
-        validator: validator
-    };
-    output = input;
-    t.deepEqual(config.normalizeOption(input), output, 'Full build');
+    describe('aliasMap', function() {
 
-    //default value
-    input = {};
-    output = defaultBuild();
-    t.deepEqual(config.normalizeOption(input), output, 'Default build');
+        it('valid map', function() {
+            var map = {
+                apple: { alias: 'a' },
+                banana: { alias: 'b' },
+                carrot: { alias: 'c' }
+            };
+            expect(config.aliasMap(map)).to.be.deep.equal({ a: 'apple', b: 'banana', c: 'carrot' });
+        });
 
-    //required and default value
-    input = { required: true, defaultValue: true };
-    t.throws(function() { config.normalizeOption(input); }, 'Options required and defaultValue are mutually exclusive 1');
-    input = { required: false, defaultValue: true };
-    t.doesNotThrow(function() { config.normalizeOption(input); }, 'Options required and defaultValue are mutually exclusive 2');
-    input = { defaultValue: true };
-    t.doesNotThrow(function() { config.normalizeOption(input); }, 'Options required and defaultValue are mutually exclusive 3');
-    input = { required: true };
-    t.doesNotThrow(function() { config.normalizeOption(input); }, 'Options required and defaultValue are mutually exclusive 4');
-
-    t.end();
-
-});
-
-test('Normalize Options', function(t) {
-    var input;
-    var output;
-
-    input = {
-        name: {},
-        age: {}
-    };
-    output = {
-        name: defaultBuild(),
-        age: defaultBuild()
-    };
-    t.deepEqual(config.normalizeOptions(input), output, 'Default options');
-
-    t.end();
-});
-
-test('Alias Map', function(t) {
-    var input;
-    var output;
-
-    input = {
-        name: {
-            alias: 'n'
-        },
-        age: {
-            alias: 'a'
-        },
-        gender: {}
-    };
-    output = {
-        n: 'name',
-        a: 'age'
-    };
-    t.deepEqual(config.aliasMap(input), output, 'Alias map');
-
-    t.end();
-});
-
-test('Normalize', function(t) {
-    var template;
-    var input;
-
-    template = {
-        description: 'Get the absolute sum of numbers.',
-        defaultOption: 'number',
-        examples: [
-            {
-                title: 'Example 1',
-                body: 'This is an example.'
+        it('map with duplicate aliases', function() {
+            var map = {
+                apple: {alias: 'a'},
+                apricot: {alias: 'a'},
+                banana: {alias: 'b'},
+                carrot: {alias: 'c'}
+            };
+            try {
+                config.aliasMap(map);
+            } catch (e) {
+                expect(e).to.be.instanceof(config.error.aliasConflict);
+                expect(e.conflict.indexOf('apple')).to.not.be.equal(-1);
+                expect(e.conflict.indexOf('apricot')).to.not.be.equal(-1);
             }
-        ],
-        groups: {
-            math: 'Math Options',
-            message: 'Message Options'
-        },
-        help: 'All numbers provided made positive and then added to the sum.',
-        options: {},
-        synopsis: [
-            '[OPTIONS]...',
-            '--number 5 -n 3 --message "Hello, World!"'
-        ]
-    };
-    t.deepEqual(config.normalize(template), template, 'Full build');
+        });
 
-    input = Object.assign({}, template, { description: {} });
-    t.throws(function() { config.normalize(input); }, 'Invalid description');
+    });
 
-    input = Object.assign({}, template, { defaultOption: {} });
-    t.throws(function() { config.normalize(input); }, 'Invalid default option');
+    describe('defaultTransform', function() {
 
-    input = Object.assign({}, template, { examples: {} });
-    t.throws(function() { config.normalize(input); }, 'Invalid examples 1');
-    input = Object.assign({}, template, { examples: [ {} ] });
-    t.throws(function() { config.normalize(input); }, 'Invalid examples 2');
+        it('is function', function() {
+            expect(config.defaultTransform).to.be.a('function');
+        });
 
-    input = Object.assign({}, template, { groups: { math: 5 } });
-    t.throws(function() { config.normalize(input); }, 'Invalid groups 1');
-    input = Object.assign({}, template, { groups: [] });
-    t.throws(function() { config.normalize(input); }, 'Invalid groups 2');
+    });
 
-    input = Object.assign({}, template, { help: {} });
-    t.throws(function() { config.normalize(input); }, 'Invalid help');
+    describe('defaultValidate', function() {
 
-    input = Object.assign({}, template, { options: [] });
-    t.throws(function() { config.normalize(input); }, 'Invalid options');
+        it('is function', function() {
+            expect(config.defaultValidate).to.be.a('function');
+        });
 
-    input = Object.assign({}, template, { synopsis: {} });
-    t.throws(function() { config.normalize(input); }, 'Invalid synopsis 1');
-    input = Object.assign({}, template, { synopsis: [ {} ] });
-    t.throws(function() { config.normalize(input); }, 'Invalid synopsis 2');
+    });
 
-    t.end();
+    describe('normalizeOption', function() {
+
+        describe('invalid parameter', function() {
+
+            it('null', function() {
+                expect(function() {
+                    config.normalizeOption(null);
+                }).to.throw(config.error.invalid);
+            });
+
+            it('string', function() {
+                expect(function() {
+                    config.normalizeOption('str');
+                }).to.throw(config.error.invalid);
+            });
+
+            it('number', function() {
+                expect(function() {
+                    config.normalizeOption(5);
+                }).to.throw(config.error.invalid);
+            });
+
+            it('boolean', function() {
+                expect(function() {
+                    config.normalizeOption(true);
+                }).to.throw(config.error.invalid);
+            });
+
+        });
+
+        it('all properties', function() {
+            var input = {
+                alias: 'n',
+                defaultValue: 0,
+                description: 'A number to add to the sum.',
+                group: 'math',
+                hidden: false,
+                multiple: true,
+                required: false,
+                transform: function(value) { return Math.abs(value); },
+                type: Number,
+                validate: function(value) { return !isNaN(value); }
+            };
+            expect(config.normalizeOption(input)).to.be.deep.equal(input);
+        });
+
+        it('no properties', function() {
+            expect(config.normalizeOption({})).to.be.deep.equal(defaultBuild());
+        });
+
+        describe('defaultValue and required', function() {
+
+            it('both', function() {
+                expect(function() {
+                    config.normalizeOption({ required: true, defaultValue: true });
+                }).to.throw(config.error);
+            });
+
+            it('default value', function() {
+                expect(function() {
+                    config.normalizeOption({ defaultValue: true });
+                }).to.not.throw(Error);
+            });
+
+            it('required false', function() {
+                expect(function() {
+                    config.normalizeOption({ required: false, defaultValue: true });
+                }).to.not.throw(Error);
+            });
+
+            it('required true', function() {
+                expect(function() {
+                    config.normalizeOption({ required: true });
+                }).to.not.throw(Error);
+            });
+
+        });
+
+    });
+
+    describe('normalizeOptions', function() {
+
+        it('invalid parameter', function() {
+            expect(function() {
+                config.normalizeOption(null);
+            }).to.throw(config.error.invalid);
+        });
+
+        it('defaults', function() {
+            expect(config.normalizeOptions({ name: {}, age: {}})).to.be.deep.equal({
+                name: defaultBuild(),
+                age: defaultBuild()
+            });
+        });
+
+    });
+
+    describe('normalize', function() {
+        var template = {
+            brief: 'Get the absolute sum of numbers.',
+            description: 'All numbers provided made positive and then added to the sum.',
+            defaultOption: 'number',
+            groups: {
+                math: 'Math Options',
+                message: 'Message Options'
+            },
+            options: {},
+            sections: [
+                {
+                    title: 'Example 1',
+                    body: 'This is an example.'
+                }
+            ],
+            synopsis: [
+                '[OPTIONS]...',
+                '--number 5 -n 3 --message "Hello, World!"'
+            ]
+        };
+
+        it('full options', function() {
+            expect(config.normalize(template)).to.be.deep.equal(template);
+        });
+
+        it('invalid brief', function() {
+            var input = Object.assign({}, template, { brief: {} });
+            expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+        });
+
+        it('invalid description', function() {
+            var input = Object.assign({}, template, { description: {} });
+            expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+        });
+
+        it('invalid default option', function() {
+            var input = Object.assign({}, template, { defaultOption: {} });
+            expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+        });
+
+        describe('invalid groups', function() {
+
+            it('non-object', function() {
+                var input = Object.assign({}, template, { groups: null });
+                expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+            });
+
+            it('value is number', function() {
+                var input = Object.assign({}, template, { groups: { math: 5 } });
+                expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+            });
+
+            it('value is array', function() {
+                var input = Object.assign({}, template, { groups: [] });
+                expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+            });
+
+        });
+
+        describe('invalid options', function() {
+
+            it('array', function() {
+                var input = Object.assign({}, template, { options: [] });
+                expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+            });
+
+            it('null', function() {
+                var input = Object.assign({}, template, { options: null });
+                expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+            });
+
+        });
+
+        describe('invalid sections', function() {
+
+            it('non-array', function() {
+                var input = Object.assign({}, template, { sections: {} });
+                expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+            });
+
+            it('array item without title', function() {
+                var input = Object.assign({}, template, { sections: [{ body: '' }] });
+                expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+            });
+
+            it('array item without body', function() {
+                var input = Object.assign({}, template, { sections: [{ title: '' }] });
+                expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+            });
+
+        });
+
+        describe('invalid synopsis', function() {
+
+            it('object', function() {
+                var input = Object.assign({}, template, { synopsis: {} });
+                expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+            });
+
+            it('array of non-string', function() {
+                var input = Object.assign({}, template, { synopsis: [ {} ] });
+                expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
+            });
+
+        });
+
+    });
+
 });
-
-function transform(value) {
-    return Math.abs(value);
-}
-
-function validator(value) {
-    return !isNaN(value);
-}
 
 function defaultBuild() {
     return {
         alias: '',
         description: '',
         group: '',
-        help: '',
+        hidden: false,
         multiple: false,
         required: false,
         transform: config.defaultTransform,
         type: Boolean,
-        validator: config.defaultValidator
+        validate: config.defaultValidate
     }
 }

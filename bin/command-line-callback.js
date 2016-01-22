@@ -3,9 +3,9 @@ var commandConfig       = require('./command-config');
 var commandLineArgs     = require('./command-line-args');
 var commandOptions      = require('./command-options');
 var format              = require('cli-format');
-var helpFormatter       = require('./help-formatter');
+var help                = require('./help');
+var helpTemplate        = require('./help-template');
 var is                  = require('./is-type.js');
-var OptionError         = require('./option-error');
 var path                = require('path');
 
 var commandStore = {};
@@ -13,7 +13,7 @@ var commandStore = {};
 
 Object.defineProperty(exports, 'application', {
     get: function() {
-        return path.basename(process.argv[1]);
+        return path.basename(process.argv[1], '.js');
     }
 });
 
@@ -31,10 +31,18 @@ exports.evaluate = function() {
     var normalizedOptions;
     var result = '';
 
-    //generic help
-    if (command === '--help' || !commandStore.hasOwnProperty(command)) {
-        result += exports.getCommandUsage(command);
+    // get command list help
+    if (command === '--help') {
+        result += helpTemplate.commandList(exports.application, commandStore);
+        console.log(result);
 
+    // invalid command
+    } else if (!commandStore.hasOwnProperty(command)) {
+        result += format.wrap(chalk.red('The issued command does not exist.')) + '\n\n';
+        result += helpTemplate.commandList(exports.application, commandStore);
+        console.log(result);
+
+    // valid command
     } else {
         item = commandStore[command];
 
@@ -50,11 +58,18 @@ exports.evaluate = function() {
         if (error && !config.help) result += format.wrap(chalk.red(error.message)) + '\n\n';
         if (error || config.help) result += exports.getCommandUsage(command) + '\n';
 
-        //add command results to the output
-        if (typeof execResult !== 'undefined') result += execResult;
+        if (isPromise(execResult)) {
+            execResult.then(function(data) {
+                if (typeof data !== 'undefined') result += data;
+                console.log(result || '');
+            }, function(err) {
+                console.error(result + (err.stack || err));
+            });
+        } else {
+            if (typeof execResult !== 'undefined') result += execResult;
+            console.log(result || '');
+        }
     }
-
-    console.log(result || '');
 };
 
 /**
@@ -76,7 +91,7 @@ exports.define = function(commandName, callback, configuration) {
     //validate parameters
     if (!is.string(commandName) || / /.test(commandName)) throw new Error('Invalid command name specified. Expected a string without spaces, received: ' + commandName);
     if (!is.function(callback)) throw new Error('Invalid callback specified. Expected a function, received: ' + callback);
-    if (configuration && !is.plainObject(configuration)) throw new Error('Invalid configuration specified. Expected an object, received: ' + configuration);
+    if (!is.plainObject(configuration)) throw new Error('Invalid configuration specified. Expected an object, received: ' + configuration);
 
     //validate that the command is not already defined
     if (commandStore.hasOwnProperty(commandName)) throw new Error('Cannot define command because a command with this name is already defined: ' + commandName);
@@ -134,59 +149,12 @@ exports.execute = function(command, options) {
 
 /**
  * Get usage help.
- * @param {string} [command] The command to get usage for.
- * @param {object} [configuration] If provided then usage is generated based on this
- * configuration whether the command exists or not.
- * @param {string} [template] The help formatter template to use to produce the usage.
+ * @param {string} command The name of the command to get usage information for.
  * @returns {string}
  */
-exports.getUsage = function(configuration, template) {
-    var config = commandConfig.normalize(configuration);
-    if (!template) template = helpFormatter.defaultTemplate;
-    return helpFormatter(template, config);
-};
-
-exports.getCommandUsage = function(command, template) {
-    var application = exports.application;
-    var body;
-    var commands;
-    var result;
-    var widestCommand;
-
-    if (!template) template = helpFormatter.defaultTemplate;
-
-    if (!command || !commandStore.hasOwnProperty(command)) {
-        commands = Object.keys(commandStore);
-
-        if (command) result += format.wrap(chalk.red('The issued command does not exist.')) + '\n\n';
-
-        result = helpFormatter.section(application,
-                'This application accepts multiple commands as can be seen below in the command list.') + '\n\n';
-
-        result += helpFormatter('synopsis', { title: application, synopsis: [ '[COMMAND] [OPTIONS]...']}) + '\n\n';
-
-        result += helpFormatter.section(
-                'Command Help',
-                'To get help on any of the commands, type the command name followed by --help.' +
-                (commands.length > 0 ? ' For example: \n\n' + application + ' ' + commands[0] + ' --help' : '')) + '\n\n';
-
-        if (commands.length === 0) {
-            body = chalk.italic('No commands are defined.');
-        } else {
-            body = '';
-            widestCommand = commands.reduce(function(prev, curr) { return prev > curr.length ? prev : curr.length; }, 0);
-            commands.forEach(function(commandName, index) {
-                var description = commandStore[commandName].configuration.description;
-                body += helpFormatter('item-description', { title: chalk.bold(commandName), body: description, width: widestCommand }) + '\n';
-            });
-        }
-        result += helpFormatter.ansi.boldUnderline('Commands') + '\n\n' + body;
-
-    } else {
-        result = exports.getUsage(commandStore[command].configuration, template);
-    }
-
-    return result;
+exports.getCommandUsage = function(command) {
+    var config = commandConfig.normalize(commandStore[command].configuration);
+    return helpTemplate.command(exports.application, command, config);
 };
 
 /**
@@ -212,4 +180,8 @@ function createExecuteError(command, errors) {
     return new Error('Cannot execute command "' + command +
         '" because one or more options is not valid: \n  ' +
         errors.join('\n  '))
+}
+
+function isPromise(value) {
+    return value && typeof value.then === 'function';
 }

@@ -1,232 +1,132 @@
-[![view on npm](http://img.shields.io/npm/v/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)
-[![npm module downloads](http://img.shields.io/npm/dt/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)
+```[![view on npm](http://img.shields.io/npm/v/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)```
+```[![npm module downloads](http://img.shields.io/npm/dt/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)```
 
-# Command Line Callback
+# command-line-callback
 
-This module makes it easier to implement a command line interface with a NodeJS application. It supports the following command structures:
+Create git-style command structure that calls functions within your application. Defined commands can also produce help output when the `--help` flag is used.
 
-    //local module
-    node myApp.js [COMMAND] [OPTIONS]...
-    
-    //global module
-    myApp [COMMAND] [OPTIONS]...
+## Define a Command
 
-The [COMMAND] specified is linked to a callback that will get called once all [OPTIONS] have been evaluated.
+```js
+var Command = require('command-line-callback');
+var configuration = { ... };        // look at Configuration section for details
 
-Additionally, this module implements a documenting feature where descriptions of commands and options can easily be viewed in the terminal.
+Command.define('run', runApp, configuration);
 
-## Installation
+function runApp(options) {
 
-The easiest way to install this module is using npm.
+}
+```
 
-	npm install command-line-callback
+## Command Configuration
 
-## Examples
+Configurations are used to define how command line arguments should be interpreted to create meaningful data. This is how a default configuration looks.
 
-### Define and Call Command
+```js
+{
+    brief: '',
+    description: '',
+    defaultOption: '',
+    groups: {},
+    options: {},
+    sections: {},
+    synopsis: []
+}
+```
 
-	//require the module
-	var clc = require('command-line-callback');
-	
-	//define your function that will get called
-	var callback = function(options) {
-		//...
-	};
-	
-	//define the command's configuration
-	var configuration = {
-		description: 'This calls my command',
-		options: []
-	};
-	
-	//define the command: 'myCommand'
-	clc.define('myCommand', callback, configuration);
-	
-	//evaluate the command line arguments
-	clc.evaluate();
+### brief
 
-If you saved this in a file named app.js then you'd be able to execute the code in the callback by typing the following into the terminal:
+This property defines a short description of what the command does. If the `--help` flag is issued on your application without a command or if your application is run without a command then a list of all commands and their description will be output to the console.
 
-	node app.js myCommand
+### description
 
-### Get Help for a Defined Command
+This property is a string that provides any additonal instructions for the command. It will appear immediately below the description when the `--help` flag is used.
 
-For details on what options are available for a specific command:
+### defaultOption
 
-	node app.js myCommand --help
+When the command line arguments are being parsed, any flags that aren't associated with a specific option will be assigned to the option specified here.
 
-### Get General Help for All Commands
+### groups
 
-Either one of these commands will output basic help for all defined commands:
+In situations where you have many arguments, you can specify groups for those options. You do not define groupings here (look at the options description for that) but here you do specify what the title of each group should be. The value for this property should be an object where property names are the group name and the value is the group title. For example: `{ request: 'Request Options', misc: 'Miscelaneous Options' }`.
 
-	node app.js
-	node app.js --help
+The order in which groups are assigned titles will affect the order they come out in with the `--help`.
 
-## API
+### options
 
-The API has several methods that will help you to define and call commands.
+This property is used to define what arguments your command will accept and process. There are a lot of details on this property, so look to the *Command Configuration Options* section.
 
-### define
+### sections
 
-**define(commandName, callback, [configuration])**
+The sections will only display when the `--help` flag is specified for this specific defined command. Each section will be displayed with a title and the content of the example. If the `beforeOptions` option is set then this section will appear before the options section, otherwise it will appear after the options section.
 
-Define a command that should be accessible from the command line by using the specified command name.
+This property takes an array of objects that define the title and body of the section: `[{ title: 'Example title', body: 'Example body', beforeOptions: true }]`
 
-#### Parameters
- - commandName {string} - The name of the command as it will be called from the command line.
- - callback {function} - The function to call to execute the command. This function will receive one parameter, an object, that has all of the options that were passed in with their processed values.
- - configuration {object} - An object defining how the command works and what options are available to it. If this parameter is omitted then your command will not have any options available to it. For a full explanation of the configuration, please see the configuration section below.
+### synopsis
 
-#### Example
+The synopsis will output with the `--help` flag just below the help and description. The synopsis will describe how commands should be written for the command. This property takes an array of strings and for each string the name of the command will be prefixed to the synopsis string. Example: `[OPTIONS]... [URL]`
 
-	//require the module
-	var clc = require('command-line-callback');
-	
-	//define your function that will get called
-	var callback = function(options) {
-		//...
-	};
-	
-	//define the command's configuration
-	var configuration = {
-		description: 'This calls my command',
-		options: []
-	};
-	
-	//define the command: 'myCommand'
-	clc.define('myCommand', callback, configuration);
+## Command Configuration Options
 
-### evaluate
+If you want your command to be able to accept command line arguments and process them then you must define the options property within the *command configuration*.
 
-**evalute()**
-
-Evaluate the command line args that were used to start the application and call the associated command. This should be called after all commands have been defined. Any output will be sent to the console.
-
-**Important!!!** If you don't call this function in your code somewhere then the command line will never be evaluated.
-
-#### Example
-
-	require('command-line-callback').evaluate();
-
-### execute
-
-**execute(commandName, [options])**
-
-Execute a defined command with the options supplied. The options will be processed before being sent to the command.
-
-#### Parameters
-
- - commandName {string} - The name of the command to execute.
- - options {object} - The options to pass into the command
-
-#### Returns
-
- - {*} - Returns whatever the command returns.
-
-#### Example
-
-	var clc = require('command-line-callback');
-	clc.execute('myCommand', { value: true });
-
-### getUsage
-
-**getUsage([commandName])**
-
-Get usage help.
-
-#### Parameters
-
- - commandName {string} - If specified then the usage information for that particular command will be returned. If omitted then general information for all commands will be returned.
-
-#### Returns
- - {string} - A string that has usage details.
-
-#### Example
-
-	var clc = require('command-line-callback');
-	clc.getUsage('myCommand');
-
-### help
-
-**help([commandName])**
-
-Get usage help. This is an alias for getUsage().
-
-#### Parameters
-
- - commandName {string} - If specified then the usage information for that particular command will be returned. If omitted then general information for all commands will be returned.
-
-#### Returns
- - {string} - A string that has usage details.
-
-#### Example
-
-	var clc = require('command-line-callback');
-	clc.help('myCommand');
-
-### list
-
-**list([commandsOnly])**
-
-Get a list of defined commands, optionally limited to only non-aliases.
-
-#### Parameters
-
- - commandsOnly {boolean} - Set to true to return only commands (not command aliases). Defaults to false.
-
-#### Returns
-
- - {string[]} - An array of strings, listing each defined command.
-
-## Configuration Object
-
-The configuration object defines the usage for a command and it is also used to provide command help.
-
-The following is a full example of a configuration object. A description of the properties follows the example.
-
-    {
-        description: 'Get the absolute sum of numbers.',
-        defaultOption: 'number',
-        examples: [
-            {
-                title: 'Example 1',
-                body: 'This is an example.'
-            }
-        ],
-        groups: {
-            math: 'Math Options',
-            message: 'Message Options'
-        },
-        help: 'All numbers provided made positive and then added to the sum.',
-        options: {
-            number: {
-                alias: 'n',
-                defaultValue: 0,
-                description: 'A number to add to the sum.',
-                group: 'math',
-                help: 'Each number can be positive, or negative',
-                multiple: true,
-                required: false,
-                transform: function(value) {
-                    return Math.abs(value);
-                },
-                type: Number,
-                validator: function(value) {
-                    return !isNaN(value);
-                }
-            },
-            message: {
-                description: 'A message to put in front of the summed result.',
-                required: true
-            }
-        },
-        synopsis: [
-            '[OPTIONS]...',
-            '--number 5 -n 3 --message "Hello, World!"'
-        ]
+```js
+var config = {
+    description: '',
+    defaultOption: 'foo',                   // Command line args without flag go to default option
+    options: {                              // Command Configuration Options start here
+        foo: {                              // "foo" is the flag name
+            alias: '',
+            defaultValue: undefined,
+            description: '',
+            group: '',
+            hidden: false,
+            multiple: false,
+            required: false,
+            transform: function(v) { return v; },
+            type: Boolean,
+            validate: function(v) { return true; }
+        }
     }
+}
+```
 
-An explanation on the properties specific to this module:
+### alias
 
- - **required** - If set to true then this option will automatically throw an error if that option hasn't been supplied.
- - **transform** - A function that takes the value passed in and whatever it returns is what is used for that value when the callback is called.
+A one letter string that specifies an alias flag that would be the same as using the full flag name.
+
+### defaultValue
+
+If this property is included, regardless of the value it contains, then its value will be used to populate one parsed value when no flag for this option is used in the command line arguments. If a default value is specified then required must be set to false, otherwise an error will be thrown.
+
+### description
+
+A detailed description of what the option does.
+
+### group
+
+The name of the group that this option belongs to. The *command configuration* object must define groups and their associated titles before this option does anything.
+
+### hidden
+
+If set to true then the option will not appear in the help.
+
+### multiple
+
+A boolean value that specifies whether the option can receive more than one value. If set to false and the flag for this option is used more then once then only the last value will be kept. If set to true then the processed result will come back as an array of processed values for each time that the option's flag was used.
+
+### required
+
+Setting this property to true will cause the program to output a helpful error message when the option is not specified in the command line arguments. Note that if this value is set to true that a defaultValue must not be defined otherwise an error will be thrown.
+
+### transform
+
+The transform function will be called after the *type* conversion and the *validate* test. It will recieve the type casted value as a parameter and must return its replacement value. The replacement value will not be validated.
+
+### type
+
+The type specifies the parser that will be used to convert from the string supplied by the command line argument into its primitive or object value. Parsers that come standard with this module include: `Array`, `Boolean`, `Date`, `Number`, `String`, and `Object`. You can also [define your own custom parsers]('./readme/parser.md).
+
+### validate
+
+The validate function is used to validate the value after it has had its *type* conversion. If this function returns false then a generic error message will be produced. If it returns a string then that string will be used to generate an error message. If it returns true then the validation passes.
