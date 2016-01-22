@@ -121,11 +121,11 @@ Setting this property to true will cause the program to output a helpful error m
 
 ### transform
 
-The transform function will be called after the *type* conversion and the *validate* test. It will recieve the type casted value as a parameter and must return its replacement value. The replacement value will not be validated.
+The transform function will be called after the *type* conversion and the *validate* test. It will receive the type casted value as a parameter and must return its replacement value. The replacement value will not be validated.
 
 ### type
 
-The type specifies the parser that will be used to convert from the string supplied by the command line argument into its primitive or object value. Parsers that come standard with this module include: `Array`, `Boolean`, `Date`, `Number`, `String`, and `Object`. You can also [define your own custom parsers]('./readme/parser.md).
+The type specifies the parser that will be used to convert from the string supplied by the command line argument into its primitive or object value. Parsers that come standard with this module include: `Array`, `Boolean`, `Date`, `Number`, `String`, and `Object`. You can also [define your own custom parsers](readme/parser.md).
 
 ### validate
 
