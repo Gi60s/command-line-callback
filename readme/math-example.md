@@ -156,6 +156,8 @@ Execute from the command line: `node math add --first 5 -s 10`
 
 ## Forget a Required Option
 
+If you look at the code example you'll see that the option `--first` is required for the `add` command.
+
 Execute from the command line: `node math add`
 
 ```text
