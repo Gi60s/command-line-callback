@@ -12,24 +12,30 @@ var commandStore = {};
 
 
 Object.defineProperty(exports, 'application', {
-    get: function() {
-        return path.basename(process.argv[1], '.js');
-    }
+    enumerable: false,
+    configurable: true,
+    writable: false,
+    value: path.basename(process.argv[1], '.js')
 });
 
 /**
  * Evaluate the command line args that were used to start the application and call the
  * associated command. Any output will be sent to the console.
  */
-exports.evaluate = function() {
-    var args = Array.prototype.slice.call(process.argv, 3);
-    var command = process.argv[2];
+exports.evaluate = function(args) {
+    var command;
     var config;
     var error;
     var execResult;
     var item;
     var normalizedOptions;
     var result = '';
+
+    // if args is not defined then use process args
+    if (!args) args = Array.prototype.slice.call(process.argv, 2);
+
+    // pull the command off of the args
+    command = args.shift();
 
     // get command list help
     if (command === '--help' || !command) {
@@ -51,12 +57,16 @@ exports.evaluate = function() {
         config = normalizedOptions.options;
         error = createExecuteError(command, normalizedOptions.errors);
 
-        //execute the command
-        execResult = item.callback(error, config);
-
         //show help
         if (error && !config.help) result += format.wrap(chalk.red(error.message)) + '\n\n';
         if (error || config.help) result += exports.getCommandUsage(command) + '\n';
+        if (error) {
+            console.log(result);
+            return;
+        }
+
+        //execute the command
+        execResult = item.callback(config);
 
         if (isPromise(execResult)) {
             execResult.then(function(data) {
@@ -139,10 +149,12 @@ exports.execute = function(command, options) {
     item = commandStore[command];
     normalizedOptions = commandOptions.normalize(item.configuration.options, options, false);
     config = normalizedOptions.options;
-    error = createExecuteError(normalizedOptions.errors);
+
+    error = createExecuteError(command, normalizedOptions.errors);
+    if (error) throw error;
 
     //execute the command
-    return item.callback(error, config);
+    return item.callback(config);
 };
 
 
@@ -158,17 +170,11 @@ exports.getCommandUsage = function(command) {
 };
 
 /**
- * Get a list of defined commands, optionally limited to only non-aliases.
- * @param {boolean} [commandsOnly=false] Set to true to not return aliases in the result set.
+ * Get a list of defined commands.
  * @returns {string[]}
  */
-exports.list = function(commandsOnly) {
-    var results = [];
-    Object.keys(commandStore).forEach(function(name) {
-        var item = commandStore[name];
-        if (!commandsOnly || item.command === name) results.push(name);
-    });
-    return results;
+exports.list = function() {
+    return Object.keys(commandStore);
 };
 
 

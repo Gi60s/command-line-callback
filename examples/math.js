@@ -101,15 +101,12 @@ clc.evaluate();
 
 
 
-
-
-function add(err, options) {
-    if (!err) return options.first + options.second;
+function add(options) {
+    return options.first + options.second;
 }
 
-function sum(err, options) {
+function sum(options) {
     var result = 0;
-    if (err) throw err;
     if (options.number) {
         options.number.forEach(function (value) {
             result += value;

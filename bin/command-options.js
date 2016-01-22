@@ -89,8 +89,8 @@ exports.normalizeValue = function(optionConfiguration, value, name) {
     var result;
 
     function normalize(value) {
-        value = config.transform(value);
         if (!config.validate(value)) throw new OptionError('Option validation failed' + errName + ' with value: ' + value);
+        value = config.transform(value);
         return value;
     }
 
