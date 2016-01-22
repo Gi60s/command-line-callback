@@ -32,7 +32,7 @@ exports.evaluate = function() {
     var result = '';
 
     // get command list help
-    if (command === '--help') {
+    if (command === '--help' || !command) {
         result += helpTemplate.commandList(exports.application, commandStore);
         console.log(result);
 
@@ -178,7 +178,7 @@ exports.list = function(commandsOnly) {
 function createExecuteError(command, errors) {
     if (errors.length === 0) return null;
     return new Error('Cannot execute command "' + command +
-        '" because one or more options is not valid: \n  ' +
+        '" because one or more options are not valid: \n  ' +
         errors.join('\n  '))
 }
 

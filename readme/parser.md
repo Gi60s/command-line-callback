@@ -1,6 +1,4 @@
-# command-line-callback
-
-## command.parser
+# command.parser
 
 The parser is the tool that is used to convert string values into primitives or objects. This tool is uses by the command line args tool to convert strings from the command line into usable values.
 

@@ -5,6 +5,10 @@
 
 Create git-style command structure that calls functions within your application. Defined commands can also produce help output when the `--help` flag is used.
 
+## Working Example
+
+(Look at a working example)[readme/math-example.ms]
+
 ## Define a Command
 
 ```js
