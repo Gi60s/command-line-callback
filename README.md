@@ -79,7 +79,7 @@ var config = {
     description: '',
     defaultOption: 'foo',                   // Command line args without flag go to default option
     options: {                              // Command Configuration Options start here
-        foo: {                              // "foo" is the flag name
+        fooBar: {                           // "fooBar" is the flag name
             alias: '',
             defaultValue: undefined,
             description: '',
@@ -94,6 +94,8 @@ var config = {
     }
 }
 ```
+
+If the command line is camel cased `fooBar` then when you issue the command from the command line you'll use dashes instead for the option: `--foo-bar`.
 
 ### alias
 
