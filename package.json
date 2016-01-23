@@ -1,12 +1,16 @@
 {
   "name": "command-line-callback",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Implement a command line interface that calls functions within your application.",
   "main": "index.js",
   "dependencies": {
-    "command-line-args": "^2.1.1"
+    "chalk": "^1.1.1",
+    "cli-format": "^1.1.4",
+    "custom-error-instance": "^2.1.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "chai": "^3.4.1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Gi60s/command-line-callback.git"

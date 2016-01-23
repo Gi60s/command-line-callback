@@ -1,41 +1,83 @@
-var commandLineArgs         = require('command-line-args');
-var CommandLineError        = require('./command-line-error');
-var is                      = require('./is-type');
-var path                    = require('path');
-var wordWrap                = require('./word-wrap');
+var chalk               = require('chalk');
+var commandConfig       = require('./command-config');
+var commandLineArgs     = require('./command-line-args');
+var commandOptions      = require('./command-options');
+var format              = require('cli-format');
+var help                = require('./help');
+var helpTemplate        = require('./help-template');
+var is                  = require('./is-type.js');
+var path                = require('path');
 
 var commandStore = {};
 
+
 Object.defineProperty(exports, 'application', {
-    get: function() {
-        return path.basename(process.argv[1]);
-    }
+    enumerable: false,
+    configurable: true,
+    writable: false,
+    value: path.basename(process.argv[1], '.js')
 });
 
 /**
  * Evaluate the command line args that were used to start the application and call the
  * associated command. Any output will be sent to the console.
  */
-exports.evaluate = function() {
-    var command = process.argv[2];
-    var args = Array.prototype.slice.call(process.argv, 3);
+exports.evaluate = function(args) {
+    var command;
+    var config;
+    var error;
+    var execResult;
     var item;
-    var options;
+    var normalizedOptions;
+    var result = '';
 
-    if (command === '--help' || !commandStore.hasOwnProperty(command)) {
-        console.log(commandHelp());
+    // if args is not defined then use process args
+    if (!args) args = Array.prototype.slice.call(process.argv, 2);
+
+    // pull the command off of the args
+    command = args.shift();
+
+    // get command list help
+    if (command === '--help' || !command) {
+        result += helpTemplate.commandList(exports.application, commandStore);
+        console.log(result);
+
+    // invalid command
+    } else if (!commandStore.hasOwnProperty(command)) {
+        result += format.wrap(chalk.red('The issued command does not exist.')) + '\n\n';
+        result += helpTemplate.commandList(exports.application, commandStore);
+        console.log(result);
+
+    // valid command
     } else {
         item = commandStore[command];
-        options = commandLineArgs(item.configuration.options).parse(args);
-        try {
-            console.log(exports.execute(command, options));
-        } catch (e) {
-            if (e instanceof CommandLineError) {
-                console.error(e.message);
-                console.log(exports.getUsage(command));
-            } else {
-                console.error(e.stack);
-            }
+
+        //evaluate command line arguments
+        normalizedOptions = commandLineArgs.options(item.configuration, args, false);
+        config = normalizedOptions.options;
+        error = createExecuteError(command, normalizedOptions.errors);
+
+        //show help
+        if (error && !config.help) result += format.wrap(chalk.red(error.message)) + '\n\n';
+        if (error || config.help) result += exports.getCommandUsage(command) + '\n';
+        if (error) {
+            console.log(result);
+            return;
+        }
+
+        //execute the command
+        execResult = item.callback(config);
+
+        if (isPromise(execResult)) {
+            execResult.then(function(data) {
+                if (typeof data !== 'undefined') result += data;
+                console.log(result || '');
+            }, function(err) {
+                console.error(result + (err.stack || err));
+            });
+        } else {
+            if (typeof execResult !== 'undefined') result += execResult;
+            console.log(result || '');
         }
     }
 };
@@ -46,15 +88,12 @@ exports.evaluate = function() {
  * @param {string} commandName The name of the command as it will be called from the command line.
  * @param {function} callback The function to call to execute the command. This function will receive
  * one parameter, an object, that has all of the options that were passed in with their processed values.
- * @param {object} [configuration={}] An object defining how the command works and what options are
+ * @param {object} [configuration={ options: {} }] An object defining how the command works and what options are
  * available to it. If this parameter is omitted then your command will not have any options
  * available to it.
  */
 exports.define = function(commandName, callback, configuration) {
-    var cb;
-    var found;
-    var i;
-    var option;
+    var config;
 
     //lowercase the command name
     commandName = commandName.toLowerCase();
@@ -62,36 +101,22 @@ exports.define = function(commandName, callback, configuration) {
     //validate parameters
     if (!is.string(commandName) || / /.test(commandName)) throw new Error('Invalid command name specified. Expected a string without spaces, received: ' + commandName);
     if (!is.function(callback)) throw new Error('Invalid callback specified. Expected a function, received: ' + callback);
-    if (configuration && !is.object(configuration)) throw new Error('Invalid configuration specified. Expected an object, received: ' + configuration);
+    if (!is.plainObject(configuration)) throw new Error('Invalid configuration specified. Expected an object, received: ' + configuration);
 
     //validate that the command is not already defined
     if (commandStore.hasOwnProperty(commandName)) throw new Error('Cannot define command because a command with this name is already defined: ' + commandName);
 
-    //get the configuration
-    if (!configuration) configuration = {};
-    if (!configuration.hasOwnProperty('options')) configuration.options = [];
+    //normalize the configuration
+    config = commandConfig.normalize(configuration);
     configuration.title = exports.application + ' ' + commandName;
 
-    //if there is a synopsis then prepend application and command name to each line
-    if (Array.isArray(configuration.synopsis)) {
-        configuration.synopsis.forEach(function(value, index, ar) {
-            ar[index] = 'node ' + exports.application + ' ' + commandName + ' ' + value;
-        });
-    }
-
     //add help to the options
-    for (i = 0; i < configuration.options.length; i++) {
-        option = configuration.options[i];
-        if (option.name === 'help') {
-            found = true;
-            break;
+    if (!configuration.hasOwnProperty('options')) configuration.options = {};
+    if (!configuration.options.hasOwnProperty('help')) {
+        configuration.options.help = {
+            type: Boolean,
+            description: 'Get usage details about this command.'
         }
-    }
-    if (!found) {
-        configuration.options.push({
-            name: 'help',
-            description: 'Get usage details about this command'
-        });
     }
 
     //store the command
@@ -105,145 +130,64 @@ exports.define = function(commandName, callback, configuration) {
 /**
  * Execute a defined command with the options supplied. The options will be processed
  * before being sent to the command.
- * @param {string} commandName The name of the command to execute.
+ * @param {string} command The name of the command to execute.
  * @param {object} [options={}] The options to pass into the command.
  * @returns {*} whatever the command returns.
  */
-exports.execute = function(commandName, options) {
+exports.execute = function(command, options) {
+    var config;
+    var error;
     var item;
-    var configOptions;
+    var normalizedOptions;
 
-    //validate that the command name exists
-    if (!commandStore.hasOwnProperty(commandName)) throw new CommandLineError('Command not defined: ' + commandName);
-
-    //get the command options and sort by priority
-    item = commandStore[commandName];
-    configOptions = item.configuration.options.slice();
-
-    //execute callbacks for each configuration option
-    item.configuration.options.forEach(function(option) {
-        var optionSupplied = options.hasOwnProperty(option.name);
-
-        //if the option is required but wasn't included then throw an error
-        if (option.required && !optionSupplied) {
-            throw new CommandLineError('Command "' + commandName + '" missing required option "' + option.name + '".');
-        }
-
-        //if the option has a transform function then run it
-        if (optionSupplied && typeof option.transform === 'function') {
-            options[option.name] = option.transform(options[option.name]);
-        }
-    });
-
-    //execute the command callback
-    if (options.help) {
-        return exports.getUsage(commandName) + '\n' + item.callback(options);
-    } else {
-        return item.callback(options);
+    //validate that command exists
+    if (!commandStore.hasOwnProperty(command)) {
+        throw new Error('Cannot execute command "' + command + '" because it is not defined.');
     }
+
+    //get command and normalize options
+    item = commandStore[command];
+    normalizedOptions = commandOptions.normalize(item.configuration.options, options, false);
+    config = normalizedOptions.options;
+
+    error = createExecuteError(command, normalizedOptions.errors);
+    if (error) throw error;
+
+    //execute the command
+    return item.callback(config);
 };
+
+
 
 /**
  * Get usage help.
- * @param {string} [commandName]
+ * @param {string} command The name of the command to get usage information for.
  * @returns {string}
  */
-exports.getUsage = function(commandName) {
-    var item;
-    var result;
-    if (!commandName || !commandStore.hasOwnProperty(commandName)) {
-        return commandHelp();
-    } else {
-        item = commandStore[commandName];
-        return commandLineArgs(item.configuration.options).getUsage(item.configuration);
-    }
+exports.getCommandUsage = function(command) {
+    var config = commandConfig.normalize(commandStore[command].configuration);
+    return helpTemplate.command(exports.application, command, config);
 };
-
-exports.help = exports.getUsage;
 
 /**
- * Get a list of defined commands, optionally limited to only non-aliases.
- * @param {boolean} [commandsOnly=false] Set to true to not return aliases in the result set.
+ * Get a list of defined commands.
  * @returns {string[]}
  */
-exports.list = function(commandsOnly) {
-    var results = [];
-    Object.keys(commandStore).forEach(function(name) {
-        var item = commandStore[name];
-        if (!commandsOnly || item.command === name) results.push(name);
-    });
-    return results;
+exports.list = function() {
+    return Object.keys(commandStore);
 };
 
 
 
 
 
-
-
-
-function commandHelp() {
-    var application = exports.application;
-    var keys = Object.keys(commandStore);
-    var longestCommandNameLength;
-    var descriptionStartColumn;
-    var result;
-
-    //if there are no defined commands then return that message
-    if (keys.length === 0) return 'There are no defined commands';
-
-    //initialize the result
-    result =
-        wordWrap(
-            wordWrap.boldUnderline(application) + '\n\n' +
-            'This application accepts multiple commands as can be seen below in the command list.',
-            { hangingLineIndent: 2 }
-        ) +
-        '\n\n' +
-        wordWrap(
-            wordWrap.boldUnderline('Synopsis') + '\n\n' +
-            application + ' [COMMAND] [OPTIONS]...',
-            { hangingLineIndent: 2 }
-        ) +
-        '\n\n' +
-        wordWrap(
-            wordWrap.boldUnderline('Command Help') + '\n\n' +
-            'To get help on any of the commands, type the command name followed by --help. For ' +
-            'example: \n\n' + application + ' ' + keys[0] + ' --help',
-            { hangingLineIndent: 2 }
-        ) +
-        '\n\n' +
-        wordWrap(
-            wordWrap.boldUnderline('Commands'),
-            { hangingLineIndent: 2 }
-        ) +
-        '\n\n';
-
-    //determine how long the longest command name is
-    longestCommandNameLength = 0;
-    keys.forEach(function(commandName) {
-        var len = commandName.length;
-        if (longestCommandNameLength < len) longestCommandNameLength = len;
-    });
-
-    //determine the description start column
-    descriptionStartColumn = longestCommandNameLength + 3;
-
-    //start writing commands and their descriptions
-    keys.forEach(function(commandName, index) {
-        var cmd = commandStore[commandName];
-        var content;
-        content = '  ' + wordWrap.bold(commandName) + wordWrap.makeSpaces(descriptionStartColumn - commandName.length);
-        if (cmd.command !== commandName) {
-            content += '(Alias: see ' + wordWrap.italic(cmd.command) + ')'
-        } else {
-            content += (cmd.configuration.description || '');
-        }
-        result += wordWrap(content, { hangingLineIndent: descriptionStartColumn + 2 }) + '\n';
-    });
-
-    return result;
+function createExecuteError(command, errors) {
+    if (errors.length === 0) return null;
+    return new Error('Cannot execute command "' + command +
+        '" because one or more options are not valid: \n  ' +
+        errors.join('\n  '))
 }
 
-
-
+function isPromise(value) {
+    return value && typeof value.then === 'function';
+}

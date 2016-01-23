@@ -1,14 +1,8 @@
-/**
- * Try running this example file from the command line with one or more of the following commands:
- *
- * 1) node math.js                  //gives help on the commands available for this app
- * 2) node math.js --help           //gives help on the commands available for this app
- * 3) node math.js add --help       //gives help on the add command
- * 4) node math.js add -f 5 -s -3   //adds 5 + -3 and outputs the result
- * 5) node math.js sum              //throws an error
- * 6) node math.js sum 1 2 3 4      //adds 1 + 2 + 3 + 4 and outputs the result
- */
+# Working Example Explained
 
+If you have a file `math.js` with the following content:
+
+```js
 var Command = require('../index.js');
 
 
@@ -113,3 +107,107 @@ Command.define('sum-absolute', sum, {
 
 //evaluate the command line args used to start this app
 Command.evaluate();
+```
+
+Then from the command line you have some things you can do.
+
+## Get Help about the Command
+
+Execute the command: `$ node math add --help`
+
+```text
+math add
+
+  Add two numbers together.
+
+Synopsis
+
+  math add [OPTIONS]...
+  math add --first 1 --second 2
+  math add -f 1 -s 2
+
+Description
+
+  The --first option is required (with a value) for this command to execute. The
+  --second option is optional with a default value of zero.
+
+Example
+
+  The command: math add --first 1 --second 2
+  Will output: 3
+
+Number Options
+
+  ‐f, ‐‐first   The first number
+                [Required]
+                [Type: Number]
+
+  ‐s, ‐‐second  The second number
+                [Type: Number]
+                [Default: 0]
+
+Misc Options
+
+  ‐‐help        Get usage details about this command.
+```
+
+## Execute the Command
+
+Execute from the command line: `node math add --first 5 -s 10`
+
+```text
+15
+```
+
+## Forget a Required Option
+
+If you look at the code example you'll see that the option `--first` is required for the `add` command.
+
+Execute from the command line: `node math add`
+
+```text
+Connect execut command "add" because one or more options are not valid:
+  Missing required option: first
+
+math add
+
+  Add two numbers together.
+
+Synopsis
+
+  math add [OPTIONS]...
+  math add --first 1 --second 2
+  math add -f 1 -s 2
+
+  ... and the rest of the help
+```
+
+## Forget the Command
+
+Execute from the command line: `node math` or `node math --help`
+
+```text
+math
+
+  This application accepts multiple commands as can be seen below in the command list.
+
+Synopsis
+
+  math [COMMAND] [OPTIONS]...
+
+Command Help
+
+  To get help on any of the commands, type the command name followed by --help. For
+  example:
+
+  math add --help
+
+Commands
+
+  add           Add two numbers together.
+
+  sum           Add multiple numbers together.
+
+  sum-absolute  Add the absolute value of multiple numbers together.
+```
+

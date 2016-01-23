@@ -1,214 +1,130 @@
 [![view on npm](http://img.shields.io/npm/v/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)
 [![npm module downloads](http://img.shields.io/npm/dt/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)
 
-# Command Line Callback
+# command-line-callback
 
-This module makes it easier to implement a command line interface with a NodeJS application. It supports the following command structures:
+Create git-style command structure that calls functions within your application. Defined commands can also produce help output when the `--help` flag is used.
 
-    //local module
-    node myApp.js [COMMAND] [OPTIONS]...
-    
-    //global module
-    myApp [COMMAND] [OPTIONS]...
+## Usage Example
 
-The [COMMAND] specified is linked to a callback that will get called once all [OPTIONS] have been evaluated.
+```js
+var Command = require('command-line-callback');
+var configuration = { ... };        // look at Configuration section for details
 
-Additionally, this module implements a documenting feature where descriptions of commands and options can easily be viewed in the terminal.
+function runApp(options) {}
 
-## Installation
+Command.define('run', runApp, configuration);
 
-The easiest way to install this module is using npm.
+Command.evaluate();                 // evaluate the command line args to call a command
+```
 
-	npm install command-line-callback
+## Working Example
 
-## Examples
-
-### Define and Call Command
-
-	//require the module
-	var clc = require('command-line-callback');
-	
-	//define your function that will get called
-	var callback = function(options) {
-		//...
-	};
-	
-	//define the command's configuration
-	var configuration = {
-		description: 'This calls my command',
-		options: []
-	};
-	
-	//define the command: 'myCommand'
-	clc.define('myCommand', callback, configuration);
-
-If you saved this in a file named app.js then you'd be able to execute the code in the callback by typing the following into the terminal:
-
-	node app.js myCommand
-
-### Get Help for a Defined Command
-
-For details on what options are available for a specific command:
-
-	node app.js myCommand --help
-
-### Get General Help for All Commands
-
-Either one of these commands will output basic help for all defined commands:
-
-	node app.js
-	node app.js --help
+[Look at a complete working example](readme/math-example.md)
 
 ## API
 
-The API has several methods that will help you to define and call commands.
+### define ( commandName, callback [, configuration ] )
 
-### define
+Define a git-style command, the function it should call, and the configuration options that link the command line to the callback.
 
-**define(commandName, callback, [configuration])**
+**Parameters**
 
-Define a command that should be accessible from the command line by using the specified command name.
+- **commandName** - The name of the command.
+- **callback** - The function to call once the command line arguments have been parsed. This funciton will receive one parameter: an object that represents the values from the command line arguments.
+- **configuration** - The command configuration. [Read up on the details of the configuration](readme/command-config.md).
 
-#### Parameters
- - commandName {string} - The name of the command as it will be called from the command line.
- - callback {function} - The function to call to execute the command. This function will receive one parameter, an object, that has all of the options that were passed in with their processed values.
- - configuration {object} - An object defining how the command works and what options are available to it. If this parameter is omitted then your command will not have any options available to it. For a full explanation of the configuration, please see the configuration section below.
+**Returns** undefined.
 
-#### Example
+### evaluate ( [ args ] )
 
-	//require the module
-	var clc = require('command-line-callback');
-	
-	//define your function that will get called
-	var callback = function(options) {
-		//...
-	};
-	
-	//define the command's configuration
-	var configuration = {
-		description: 'This calls my command',
-		options: []
-	};
-	
-	//define the command: 'myCommand'
-	clc.define('myCommand', callback, configuration);
+Evaluate input arguments to determine which command to run and with what options. The result will be logged to the console.
 
-### evaluate
+**Parameters**
 
-**evalute()**
+- **args** - This optional parameter must be an array of strings. If not supplied then it will use the command line arguments used to start the application.
 
-Evaluate the command line args that were used to start the application and call the associated command. This should be called after all commands have been defined. Any output will be sent to the console.
+**Returns** undefined.
 
-**Important!!!** If you don't call this function in your code somewhere then the command line will never be evaluated.
+### execute ( commandName, options )
 
-#### Example
+Execute a defined command from within your code.
 
-	require('command-line-callback').evaluate();
+**Parameters**
 
-### execute
+- **commandName** - The name of the command.
+- **options** - An object with key value pairs to pass to the command callback. This object will have it's values validated and transformed, but the values will not go through the type parser.
+ 
+**Returns** whatever the command returns.
 
-**execute(commandName, [options])**
+### getCommandUsage ( commandName )
 
-Execute a defined command with the options supplied. The options will be processed before being sent to the command.
+Get the help string for the command specified.
 
-#### Parameters
+**Parameters**
 
- - commandName {string} - The name of the command to execute.
- - options {object} - The options to pass into the command
+- **commandName** - The name of the command.
+ 
+**Returns** a string with the command's help.
 
-#### Returns
+### list ( )
 
- - {*} - Returns whatever the command returns.
+Get the names of all defined commands.
+ 
+**Returns** a string with the command's help.
 
-#### Example
+## parser
 
-	var clc = require('command-line-callback');
-	clc.execute('myCommand', { value: true });
+The parser is the tool that is used to convert string values into primitives or objects. This tool is uses by the command line args tool to convert strings from the command line into usable values.
 
-### getUsage
+### parser.define ( factory, emptyReplacement [, parser ] )
 
-**getUsage([commandName])**
+Define a parser that converts the a string into its value equivalent.
 
-Get usage help.
+**Parameters**
 
-#### Parameters
+- **factory** - The function that will take parameters to make an instance.
+- **emptyReplacement** - If the value is an empty string, this string value will be used to replace the empty string prior to conversion.
+- **parser** - A function that parses the string value before calling the factory to create the instance. If this parameter is omitted then the factory will be called with the string value as its only parameter.
 
- - commandName {string} - If specified then the usage information for that particular command will be returned. If omitted then general information for all commands will be returned.
+**Returns** undefined.
 
-#### Returns
- - {string} - A string that has usage details.
+**Example**
 
-#### Example
+```js
+var command = require('command-line-callback');
+command.parser.define(Boolean, 'true', function(value, factory) {
+    // Note: factory === Boolean
+    if (value === 'true') return factory(true);
+    if (value === 'false') return factory(false);
+    if (!isNaN(value)) return factory(parseInt(value));
+    return factory(!!value);
+});
+```
 
-	var clc = require('command-line-callback');
-	clc.getUsage('myCommand');
+### parser.exists ( factory )
 
-### help
+Check if the parser has been defined.
 
-**help([commandName])**
+**Parameters**
 
-Get usage help. This is an alias for getUsage().
+- **factory** - The function that will take parameters to make an instance.
 
-#### Parameters
+**Returns** a boolean.
 
- - commandName {string} - If specified then the usage information for that particular command will be returned. If omitted then general information for all commands will be returned.
+### parser.parse ( factory, value )
 
-#### Returns
- - {string} - A string that has usage details.
+Parse and string value and get back its instance value.
 
-#### Example
+**Parameters**
 
-	var clc = require('command-line-callback');
-	clc.help('myCommand');
+- **factory** - The function that will take parameters to make an instance.
+- **value** - A string value to parse.
 
-### list
+**Returns** the value that the factory produces.
 
-**list([commandsOnly])**
+**Example**
 
-Get a list of defined commands, optionally limited to only non-aliases.
-
-#### Parameters
-
- - commandsOnly {boolean} - Set to true to return only commands (not command aliases). Defaults to false.
-
-#### Returns
-
- - {string[]} - An array of strings, listing each defined command.
-
-## Configuration Object
-
-The configuration object defines the usage for a command and it is also used to provide command help.
-
-The structure of this configuration object is founded on the configuration for the [command-line-args](https://www.npmjs.com/package/command-line-args) module which is founded on the [command-line-usage](https://www.npmjs.com/package/command-line-usage) module. To understand how to configure those options in detail, you'll want to visit the pages for those modules. Until then, here is a brief example of how you configure those options for this module. Properties that are used only by this module (as opposed to command-line-usage and command-line-args) are listed as such:
-
-    {
-        description: 'a description of what the command does',
-        options:[
-            {
-                name: 'verbose',
-                alias: 'v',
-                type: Boolean
-            },
-            {
-                name: 'src',
-                type: String,
-                multiple: true,
-                defaultOption: true,
-                required: true                                  //this module only
-            },
-            {
-                name: 'timeout',
-                alias: 't',
-                type: Number,
-                transform: function(value) {                    //this module only
-                    if (value < 0) value = 0;
-                    return Math.round(value);
-                }
-            }
-        ]		
-    }
-
-An explanation on the properties specific to this module:
-
- - **required** - If set to true then this option will automatically throw an error if that option hasn't been supplied.
- - **transform** - A function that takes the value passed in and whatever it returns is what is used for that value when the callback is called.
+```js
+var value = command.parser.parse(Boolean, '');  // true
+```
