@@ -5,7 +5,7 @@
 
 Create git-style command structure that calls functions within your application. Defined commands can also produce help output when the `--help` flag is used.
 
-## Usage Example
+## Brief Usage Example
 
 ```js
 var Command = require('command-line-callback');
@@ -18,9 +18,11 @@ Command.define('run', runApp, configuration);
 Command.evaluate();                 // evaluate the command line args to call a command
 ```
 
-## Working Example
+## Quick Links
 
-[Look at a complete working example](readme/math-example.md)
+- [Explanation of all configuration settings](readme/command-config.md)
+- [Explanation of options configuration settings](readme/command-config-options)
+- [Full Example with Use Cases](readme/math-example.md)
 
 ## API
 
