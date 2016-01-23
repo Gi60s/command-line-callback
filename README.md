@@ -5,10 +5,6 @@
 
 Create git-style command structure that calls functions within your application. Defined commands can also produce help output when the `--help` flag is used.
 
-## Working Example
-
-[Look at a working example](readme/math-example.md)
-
 ## Usage Example
 
 ```js
@@ -22,6 +18,10 @@ Command.define('run', runApp, configuration);
 Command.evaluate();                 // evaluate the command line args to call a command
 ```
 
+## Working Example
+
+[Look at a complete working example](readme/math-example.md)
+
 ## API
 
 ### define ( commandName, callback [, configuration ] )
@@ -32,7 +32,7 @@ Define a git-style command, the function it should call, and the configuration o
 
 - **commandName** - The name of the command.
 - **callback** - The function to call once the command line arguments have been parsed. This funciton will receive one parameter: an object that represents the values from the command line arguments.
-- **configuration** - The command confuration. For details on this configuration, look at [README.md](../README.md).
+- **configuration** - The command configuration. [Read up on the details of the configuration](readme/command-config.md).
 
 **Returns** undefined.
 
@@ -73,7 +73,7 @@ Get the names of all defined commands.
  
 **Returns** a string with the command's help.
 
-## command.parser
+## parser
 
 The parser is the tool that is used to convert string values into primitives or objects. This tool is uses by the command line args tool to convert strings from the command line into usable values.
 

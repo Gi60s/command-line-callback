@@ -9,10 +9,25 @@
  * 6) node math.js sum 1 2 3 4      //adds 1 + 2 + 3 + 4 and outputs the result
  */
 
-var clc = require('../index.js');
+var Command = require('../index.js');
+
+
+function add(options) {
+    return options.first + options.second;
+}
+
+function sum(options) {
+    var result = 0;
+    if (options.number) {
+        options.number.forEach(function (value) {
+            result += value;
+        });
+    }
+    return result;
+}
 
 //define a command interface to call the add function
-clc.define('add', add, {
+Command.define('add', add, {
     brief: 'Add two numbers together.',
     description: 'The --first option is required (with a value) for this command to execute. ' +
     'The --second option is optional with a default value of zero.',
@@ -50,7 +65,7 @@ clc.define('add', add, {
 });
 
 //define a command interface to call the sum function
-clc.define('sum', sum, {
+Command.define('sum', sum, {
     brief: 'Add multiple numbers together.',
     description: 'You can add any number of arguments to be summed to this command.',
     synopsis: [
@@ -72,7 +87,7 @@ clc.define('sum', sum, {
 });
 
 //define a command interface to call the sum function after transforming inputs to absolute values
-clc.define('sum-absolute', sum, {
+Command.define('sum-absolute', sum, {
     brief: 'Add the absolute value of multiple numbers together.',
     description: 'You can add any number of arguments to be summed to this command.',
     synopsis: [
@@ -97,20 +112,4 @@ clc.define('sum-absolute', sum, {
 });
 
 //evaluate the command line args used to start this app
-clc.evaluate();
-
-
-
-function add(options) {
-    return options.first + options.second;
-}
-
-function sum(options) {
-    var result = 0;
-    if (options.number) {
-        options.number.forEach(function (value) {
-            result += value;
-        });
-    }
-    return result;
-}
+Command.evaluate();

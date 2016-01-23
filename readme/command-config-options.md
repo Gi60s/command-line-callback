@@ -59,7 +59,7 @@ The transform function will be called after the *type* conversion and the *valid
 
 ### type
 
-The type specifies the parser that will be used to convert from the string supplied by the command line argument into its primitive or object value. Parsers that come standard with this module include: `Array`, `Boolean`, `Date`, `Number`, `String`, and `Object`. You can also [define your own custom parsers](readme/parser.md).
+The type specifies the parser that will be used to convert from the string supplied by the command line argument into its primitive or object value. Parsers that come standard with this module include: `Array`, `Boolean`, `Date`, `Number`, `String`, and `Object`. You can also [define your own custom parsers](parser.md).
 
 ### validate
 
