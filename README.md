@@ -1,5 +1,5 @@
-```[![view on npm](http://img.shields.io/npm/v/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)```
-```[![npm module downloads](http://img.shields.io/npm/dt/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)```
+[![view on npm](http://img.shields.io/npm/v/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)
+[![npm module downloads](http://img.shields.io/npm/dt/command-line-callback.svg)](https://www.npmjs.org/package/command-line-callback)
 
 # command-line-callback
 
