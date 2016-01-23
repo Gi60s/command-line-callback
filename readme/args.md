@@ -1,5 +1,7 @@
 # command-line-callback
 
+**Important:** This interface is not currently exposed with the module. 
+
 ## command.args
 
 A tool for evaluating command line arguments.
