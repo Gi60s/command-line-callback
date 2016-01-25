@@ -100,7 +100,7 @@ exports.options = function(config) {
         for (i = 0; i < optionKeys.length; i++) {
             optName = optionKeys[i];
             opt = config.options[optName];
-            if ((groupKey === '' && (!opt.group || !groupMap[opt.group])) || opt.group === groupKey) {
+            if (!opt.hidden && ((groupKey === '' && (!opt.group || !groupMap[opt.group])) || opt.group === groupKey)) {
                 found = true;
 
                 group.options.push(opt);
