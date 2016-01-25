@@ -59,8 +59,8 @@ exports.evaluate = function(args) {
 
         //show help
         if (error && !config.help) result += format.wrap(chalk.red(error.message)) + '\n\n';
-        if (error || config.help) result += exports.getCommandUsage(command) + '\n';
-        if (error) {
+        if (error || config.help) {
+            result += exports.getCommandUsage(command) + '\n';
             console.log(result);
             return;
         }
