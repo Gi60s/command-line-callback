@@ -115,8 +115,9 @@ exports.define = function(commandName, callback, configuration) {
     if (!configuration.options.hasOwnProperty('help')) {
         configuration.options.help = {
             type: Boolean,
-            description: 'Get usage details about this command.'
-        }
+            description: 'Get usage details about this command.',
+            defaultValue: false
+        };
     }
 
     //store the command
