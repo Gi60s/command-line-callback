@@ -21,7 +21,7 @@ Command.evaluate();                 // evaluate the command line args to call a 
 ## Quick Links
 
 - [Explanation of all configuration settings](readme/command-config.md)
-- [Explanation of options configuration settings](readme/command-config-options)
+- [Explanation of options configuration settings](readme/command-config-options.md)
 - [Full Example with Use Cases](readme/math-example.md)
 
 ## API
