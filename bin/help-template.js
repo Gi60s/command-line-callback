@@ -135,7 +135,7 @@ exports.options = function(config) {
         result += help.heading(group.label);
 
         group.options.forEach(function(option, optionIndex) {
-            var argName = group.argNames[optionIndex];
+            var argName = group.argNames[optionIndex].replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
             var body;
             var defValue;
             var left = format.wrap(argName, { width: group.argColumnWidth, hangingIndent: '  '} );
