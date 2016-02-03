@@ -5,7 +5,7 @@
 
 Create git-style command structure that calls functions within your application. Defined commands can also produce help output when the `--help` flag is used.
 
-## Brief Usage Example
+## Usage Example
 
 ```js
 var Command = require('command-line-callback');
