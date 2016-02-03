@@ -8,7 +8,7 @@ exports.command = function(appName, commandName, config) {
 
     result.push(help.section(config.title, config.brief));
 
-    if (config.synopsis) {
+    if (config.synopsis && config.synopsis.length > 0) {
         result.push(help.synopsis(appName + ' ' + commandName, config.synopsis));
     }
 
@@ -41,8 +41,7 @@ exports.commandList = function(appName, commandStore) {
     var result = [];
     var width;
 
-    result.push(help.section(appName,
-            'This application accepts multiple commands as can be seen below in the command list.'));
+    result.push(help.section(appName, 'The ' + chalk.bold(appName) + ' application requires a command to execute.'));
 
     result.push(help.synopsis(appName, ['[COMMAND] [OPTIONS]...']));
 
@@ -57,12 +56,21 @@ exports.commandList = function(appName, commandStore) {
         width = help.width(commands, 35);
         commands.forEach(function(commandName) {
             var brief = commandStore[commandName].configuration.brief || '';
-            body.push(help.columns(chalk.bold(commandName), brief, width));
+            var left;
+
+            left = {
+                content: chalk.bold(commandName),
+                width: width + 2,
+                paddingLeft: '  ',
+                hangingIndent: '  '
+            };
+
+            body.push(help.columns([left, brief]));
         });
     }
-    result.push(help.heading('Commands') + body.join('\n'));
+    result.push(help.heading('Available Commands') + body.join('\n'));
 
-    return result.join('\n\n');
+    return result.join('\n\n') + '\n';
 };
 
 exports.options = function(config) {
@@ -72,7 +80,7 @@ exports.options = function(config) {
     var groupMap;
     var groups = [];
     var result = '';
-    var strWidth = format.stringWidth;
+    var strWidth = format.width;
     var width = 0;
 
     //create a group mapping (between keys and labels)
@@ -87,6 +95,7 @@ exports.options = function(config) {
         var group;
         var i;
         var opt;
+        var optKey;
         var optName;
 
         group = {
@@ -98,14 +107,15 @@ exports.options = function(config) {
         };
 
         for (i = 0; i < optionKeys.length; i++) {
-            optName = optionKeys[i];
-            opt = config.options[optName];
+            optKey = optionKeys[i];
+            optName = optKey.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+            opt = config.options[optKey];
             if (!opt.hidden && ((groupKey === '' && (!opt.group || !groupMap[opt.group])) || opt.group === groupKey)) {
                 found = true;
 
                 group.options.push(opt);
 
-                argName = chalk.bold((opt.alias ? dash + opt.alias + ', ' : '') + dash + dash + optName);
+                argName = (opt.alias ? chalk.bold(dash + opt.alias) + ', ' : '') + chalk.bold(dash + dash + optName);
                 group.argNames.push(argName);
 
                 argWidth = strWidth(argName);
@@ -138,12 +148,12 @@ exports.options = function(config) {
             var argName = group.argNames[optionIndex].replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
             var body;
             var defValue;
-            var left = format.wrap(argName, { width: group.argColumnWidth, hangingIndent: '  '} );
+            var left;
             var right = [];
 
-            if (option.required) right.push('[Required]');
+            if (option.required) right.push(chalk.yellow('[Required]'));
 
-            if (option.type.name && option.type.name !== 'Boolean') right.push('[Type: ' + option.type.name + ']');
+            if (option.type.name && option.type.name !== 'Boolean') right.push(chalk.dim('[Type: ' + option.type.name + ']'));
 
             if (option.hasOwnProperty('defaultValue')) {
                 if (typeof option.defaultValue === 'object' && option.defaultValue) {
@@ -152,14 +162,24 @@ exports.options = function(config) {
                     defValue = option.defaultValue;
                     if (typeof defValue === 'string') defValue = '"' + defValue + '"';
                 }
-                right.push('[Default: ' + defValue + ']');
+                right.push(chalk.dim('[Default: ' + defValue + ']'));
             }
 
-            body = option.description ? option.description + '\n' : '';
-            if (right.length > 0) body += chalk.dim(right.join('\n'));
+            left = {
+                content: argName,
+                width: width + 2,
+                hangingIndent: '  ',
+                paddingLeft: '  '
+            };
 
-            result += help.columns(left, body, width); //group.argColumnWidth);
-            if (optionIndex < group.options.length - 1) result += '\n';
+            body = {
+                content: option.description ? option.description + '\n' : '',
+                justify: false
+            };
+            if (right.length > 0) body.content += right.join('\n');
+
+            result += help.columns([ left, body ]);
+            if (optionIndex < group.options.length - 1) result += '\n\n';
         });
 
 

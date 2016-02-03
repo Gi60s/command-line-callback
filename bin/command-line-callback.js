@@ -10,7 +10,6 @@ var path                = require('path');
 
 var commandStore = {};
 
-
 Object.defineProperty(exports, 'application', {
     enumerable: false,
     configurable: true,

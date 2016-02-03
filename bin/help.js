@@ -5,7 +5,7 @@ var help = exports;
 
 exports.columns = function(left, right, width) {
     if (!width) width = 16;
-    return format.columns(left, right, { width: [width, null], paddingLeft: '  ', paddingMiddle: '  ' });
+    return format.columns.wrap(left, right, { width: [width, null], paddingLeft: '  ', paddingMiddle: '  ' });
 };
 
 exports.heading = function(content) {

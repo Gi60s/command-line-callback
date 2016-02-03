@@ -9,13 +9,40 @@ Create git-style command structure that calls functions within your application.
 
 ```js
 var Command = require('command-line-callback');
-var configuration = { ... };        // look at Configuration section for details
 
-function runApp(options) {}
+// define the command configuration
+var configuration = {
+    brief: 'Echo arguments to the console.',
+    options: {
+        fileName: {
+            alias: 'f',
+            description: 'A file name.',
+            type: String,
+            required: true
+        },
+        min: {
+            description: 'A non-negative integer.',
+            type: Number,
+            transform: function(value) {
+                return Math.round(value);
+            },
+            validate: function(value) {
+                return value >= 0;
+            }
+        }
+    }
+};
 
-Command.define('run', runApp, configuration);
+// define the command callback
+function echoHandler(options) {
+    console.log(options);
+}
 
-Command.evaluate();                 // evaluate the command line args to call a command
+// define the command
+Command.define('echo', echoHandler, configuration);
+
+// evaluate the command line arguments
+Command.evaluate();
 ```
 
 ## Quick Links
