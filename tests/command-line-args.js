@@ -90,6 +90,20 @@ describe('command-line-args', function() {
                 lastName: ['Smith']
             };
             expect(args.map(config, input)).to.be.deep.equal(output);
+        });
+
+        describe('weird arguments', function() {
+
+            it('=', function() {
+                var input = ['--name', 'a=b'];
+                expect(args.map(config, input)).to.be.deep.equal({ name: ['a=b'] });
+            });
+
+            it('?', function() {
+                var input = ['--name', 'a?b'];
+                expect(args.map(config, input)).to.be.deep.equal({ name: ['a?b'] });
+            });
+
         })
 
     });
