@@ -35,7 +35,7 @@ If this property is included, regardless of the value it contains, then its valu
 
 ### description
 
-A detailed description of what the option does.
+A detailed description of what the option does. The description can be a string or a function that returns a string. If a function is used then it will receive as its parameter an object that has the app name and command used, like so: `{ app: 'MyApp', command: 'my-command' }`.
 
 ### group
 
