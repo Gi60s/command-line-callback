@@ -14,7 +14,7 @@ exports.heading = function(content) {
 
 exports.section = function(title, body) {
     return help.heading(title) +
-            format.wrap(body, { paddingLeft: '  ' });
+            format.wrap(body, { paddingLeft: '  ', justify: true });
 };
 
 exports.synopsis = function(appName, body) {

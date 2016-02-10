@@ -23,7 +23,7 @@ exports.command = function(appName, commandName, config) {
     });
 
     if (Object.keys(config.options).length > 0) {
-        result.push(exports.options(config));
+        result.push(exports.options(config, { app: appName, command: commandName }));
     }
 
     config.sections.forEach(function(section) {
@@ -73,7 +73,7 @@ exports.commandList = function(appName, commandStore) {
     return result.join('\n\n') + '\n';
 };
 
-exports.options = function(config) {
+exports.options = function(config, params) {
     var dash = '\u2010';
     var maxWidth = 35;
     var optionKeys = Object.keys(config.options);
@@ -175,9 +175,14 @@ exports.options = function(config) {
             };
 
             body = {
-                content: option.description ? option.description + '\n' : '',
-                justify: false
+                content: '',
+                justify: true
             };
+            if (option.description) {
+                body.content = typeof option.description === 'function' ?
+                    option.description(params) + '\n' :
+                    option.description + '\n'
+            }
             if (right.length > 0) body.content += right.join('\n');
 
             result += help.columns([ left, body ]) + '\n';

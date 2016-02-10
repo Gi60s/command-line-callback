@@ -78,7 +78,7 @@ Command.define('sum', sum, {
     options: {
         number: {
             alias: 'n',
-            description: 'A number to add to the sum',
+            description: function(p) { return 'A number to add to the sum.' + p.app + ' ' + p.command },
             type: Number,
             multiple: true,
             required: true

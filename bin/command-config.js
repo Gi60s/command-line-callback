@@ -94,7 +94,7 @@ exports.normalizeOption = function(option) {
     if (!exports.isNormalized(option)) {
         result = Object.assign({}, option);
         processOption(result, 'alias', '', 'a string of length 1', is.alias);
-        processOption(result, 'description', '', 'a string', is.string);
+        processOption(result, 'description', '', 'a string or a function', (v) => is.string(v) || is.function(v));
         processOption(result, 'group', '', 'a string', is.string);
         processOption(result, 'hidden', false, 'a boolean', is.boolean);
         processOption(result, 'multiple', false, 'a boolean', is.boolean);
