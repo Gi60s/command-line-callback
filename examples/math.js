@@ -97,6 +97,9 @@ Command.define('sum-absolute', sum, {
         '1 -2 3'
     ],
     defaultOption: 'number',
+    groups: {
+        'number': 'Math Options'
+    },
     options: {
         number: {
             alias: 'n',
@@ -106,7 +109,8 @@ Command.define('sum-absolute', sum, {
             required: true,
             transform: function (value) {
                 return Math.abs(value);
-            }
+            },
+            group: 'number'
         }
     }
 });

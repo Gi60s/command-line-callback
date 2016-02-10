@@ -68,7 +68,7 @@ exports.commandList = function(appName, commandStore) {
             body.push(help.columns([left, brief]));
         });
     }
-    result.push(help.heading('Available Commands') + body.join('\n'));
+    result.push(help.heading('Available Commands') + body.join('\n\n'));
 
     return result.join('\n\n') + '\n';
 };
@@ -155,6 +155,8 @@ exports.options = function(config) {
 
             if (option.type.name && option.type.name !== 'Boolean') right.push(chalk.dim('[Type: ' + option.type.name + ']'));
 
+            if (option.multiple) right.push(chalk.dim('[Multiple]'));
+
             if (option.hasOwnProperty('defaultValue')) {
                 if (typeof option.defaultValue === 'object' && option.defaultValue) {
                     defValue = JSON.stringify(option.defaultValue, null, 2);
@@ -178,8 +180,8 @@ exports.options = function(config) {
             };
             if (right.length > 0) body.content += right.join('\n');
 
-            result += help.columns([ left, body ]);
-            if (optionIndex < group.options.length - 1) result += '\n\n';
+            result += help.columns([ left, body ]) + '\n';
+            if (optionIndex < group.options.length - 1) result += '\n';
         });
 
 
