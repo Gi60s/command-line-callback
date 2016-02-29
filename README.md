@@ -50,13 +50,13 @@ Command.evaluate();
 **Execute the Command from the Command Line**
 
 ```sh
-node index.js echo --file-name 'sample.txt'
+node index.js echo --file-name sample.txt --min 5
 ```
 
 Optionally, because just one command is defined it will be called if no command is specified.
 
 ```sh
-node index.js --file-name 'sample.txt'
+node index.js --f sample.txt
 ```
 
 ## Quick Links
