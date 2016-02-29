@@ -1,10 +1,10 @@
 "use strict";
 var Command = require('../index.js');
 
-Command.defaultCommand = 'default';
+Command.defaultCommand = 'abc';
 
 Command.define('abc', abcCommand, { brief: 'The abc command.' });
-Command.define('default', defaultCommand, { brief: 'The default command.'});
+Command.define('def', defCommand, { brief: 'The def command.'});
 
 Command.evaluate();
 
@@ -14,7 +14,7 @@ function abcCommand(config) {
     console.log('You have called the abc command.');
 }
 
-function defaultCommand(config) {
+function defCommand(config) {
     console.log('You have called the default command.');
 }
 

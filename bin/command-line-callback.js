@@ -80,6 +80,7 @@ exports.define = function(commandName, callback, configuration) {
  */
 exports.evaluate = function(args) {
     var command;
+    var commands = Object.keys(commandStore);
     var config;
     var error;
     var execResult;
@@ -93,11 +94,14 @@ exports.evaluate = function(args) {
     // check to see if the first argument is a valid command and if so then pull it off of the args list
     if (commandStore.hasOwnProperty(args[0])) command = args.shift();
 
+    // if no command was specified and there is only one command then use just that command
+    if (!command && commands.length === 1) command = commands[0];
+
     // if a command wasn't specified, check for a default command
-    if (!command && args[0] !== '--help' && commandStore.hasOwnProperty(defaultCommand)) command = defaultCommand;
+    if (typeof command === 'undefined' && args[0] !== '--help' && commandStore.hasOwnProperty(defaultCommand)) command = defaultCommand;
 
     // get command list help
-    if (!command) {
+    if (typeof command === 'undefined') {
         result += exports.getCommandUsage();
         console.log(result);
 
