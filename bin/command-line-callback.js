@@ -8,6 +8,7 @@ var helpTemplate        = require('./help-template');
 var is                  = require('./is-type.js');
 var path                = require('path');
 
+var defaultCommand = 'default';
 var commandStore = {};
 
 Object.defineProperty(exports, 'application', {
@@ -18,68 +19,14 @@ Object.defineProperty(exports, 'application', {
 });
 
 /**
- * Evaluate the command line args that were used to start the application and call the
- * associated command. Any output will be sent to the console.
+ * Get or set the default command to use if one is not specified.
  */
-exports.evaluate = function(args) {
-    var command;
-    var config;
-    var error;
-    var execResult;
-    var item;
-    var normalizedOptions;
-    var result = '';
-
-    // if args is not defined then use process args
-    if (!args) args = Array.prototype.slice.call(process.argv, 2);
-
-    // pull the command off of the args
-    command = args.shift();
-
-    // get command list help
-    if (command === '--help' || !command) {
-        result += helpTemplate.commandList(exports.application, commandStore);
-        console.log(result);
-
-    // invalid command
-    } else if (!commandStore.hasOwnProperty(command)) {
-        result += format.wrap(chalk.red('The issued command does not exist.')) + '\n\n';
-        result += helpTemplate.commandList(exports.application, commandStore);
-        console.log(result);
-
-    // valid command
-    } else {
-        item = commandStore[command];
-
-        //evaluate command line arguments
-        normalizedOptions = commandLineArgs.options(item.configuration, args, false);
-        config = normalizedOptions.options;
-        error = createExecuteError(command, normalizedOptions.errors);
-
-        //show help
-        if (error && !config.help) result += format.wrap(chalk.red(error.message)) + '\n\n';
-        if (error || config.help) {
-            result += exports.getCommandUsage(command) + '\n';
-            console.log(result);
-            return;
-        }
-
-        //execute the command
-        execResult = item.callback(config);
-
-        if (isPromise(execResult)) {
-            execResult.then(function(data) {
-                if (typeof data !== 'undefined') result += data;
-                console.log(result || '');
-            }, function(err) {
-                console.error(result + (err.stack || err));
-            });
-        } else {
-            if (typeof execResult !== 'undefined') result += execResult;
-            console.log(result || '');
-        }
-    }
-};
+Object.defineProperty(exports, 'defaultCommand', {
+    enumerable: true,
+    configurable: true,
+    get: function() { return defaultCommand; },
+    set: function(v) { defaultCommand = v; }
+});
 
 /**
  * Define a command that should be accessible from the command line by using the
@@ -128,6 +75,73 @@ exports.define = function(commandName, callback, configuration) {
 };
 
 /**
+ * Evaluate the command line args that were used to start the application and call the
+ * associated command. Any output will be sent to the console.
+ */
+exports.evaluate = function(args) {
+    var command;
+    var config;
+    var error;
+    var execResult;
+    var item;
+    var normalizedOptions;
+    var result = '';
+
+    // if args is not defined then use process args
+    if (!args) args = Array.prototype.slice.call(process.argv, 2);
+
+    // check to see if the first argument is a valid command and if so then pull it off of the args list
+    if (commandStore.hasOwnProperty(args[0])) command = args.shift();
+
+    // if a command wasn't specified, check for a default command
+    if (!command && args[0] !== '--help' && commandStore.hasOwnProperty(defaultCommand)) command = defaultCommand;
+
+    // get command list help
+    if (!command) {
+        result += exports.getCommandUsage();
+        console.log(result);
+
+    // invalid command
+    } else if (!commandStore.hasOwnProperty(command)) {
+        result += format.wrap(chalk.red('The issued command does not exist.')) + '\n\n';
+        result += result += exports.getCommandUsage();
+        console.log(result);
+
+    // valid command
+    } else {
+        item = commandStore[command];
+
+        //evaluate command line arguments
+        normalizedOptions = commandLineArgs.options(item.configuration, args, false);
+        config = normalizedOptions.options;
+        error = createExecuteError(command, normalizedOptions.errors);
+
+        //show help
+        if (error && !config.help) result += format.wrap(chalk.red(error.message)) + '\n\n';
+        if (error || config.help) {
+            result += exports.getCommandUsage(command) + '\n';
+            console.log(result);
+            return;
+        }
+
+        //execute the command
+        execResult = item.callback(config);
+
+        if (isPromise(execResult)) {
+            execResult.then(function(data) {
+                if (typeof data !== 'undefined') result += data;
+                console.log(result || '');
+            }, function(err) {
+                console.error(result + (err.stack || err));
+            });
+        } else {
+            if (typeof execResult !== 'undefined') result += execResult;
+            console.log(result || '');
+        }
+    }
+};
+
+/**
  * Execute a defined command with the options supplied. The options will be processed
  * before being sent to the command.
  * @param {string} command The name of the command to execute.
@@ -161,12 +175,17 @@ exports.execute = function(command, options) {
 
 /**
  * Get usage help.
- * @param {string} command The name of the command to get usage information for.
+ * @param {string} [command] The name of the command to get usage information for.
  * @returns {string}
  */
 exports.getCommandUsage = function(command) {
-    var config = commandConfig.normalize(commandStore[command].configuration);
-    return helpTemplate.command(exports.application, command, config);
+    var config;
+    if (arguments.length === 0) {
+        return helpTemplate.commandList(exports.application, commandStore);
+    } else {
+        config = commandConfig.normalize(commandStore[command].configuration);
+        return helpTemplate.command(exports.application, command, config);
+    }
 };
 
 /**
