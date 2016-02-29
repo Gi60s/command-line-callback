@@ -7,6 +7,8 @@ Create git-style command structure that calls functions within your application.
 
 ## Usage Example
 
+**index.js**
+
 ```js
 var Command = require('command-line-callback');
 
@@ -45,6 +47,18 @@ Command.define('echo', echoHandler, configuration);
 Command.evaluate();
 ```
 
+**Execute the Command from the Command Line**
+
+```sh
+node index.js echo --file-name 'sample.txt'
+```
+
+Optionally, because just one command is defined it will be called if no command is specified.
+
+```sh
+node index.js --file-name 'sample.txt'
+```
+
 ## Quick Links
 
 - [Explanation of all configuration settings](readme/command-config.md)
@@ -52,6 +66,20 @@ Command.evaluate();
 - [Full Example with Use Cases](readme/math-example.md)
 
 ## API
+
+### defaultCommand
+
+Get or set the name of the default command. If the application is stared from the command line without a command, and  multiple commands are defined, then the application will attempt to execute the default command. The default command defaults to `default`.
+
+**Example**
+
+```js
+var command = require('command-line-callback');
+command.defaultCommand = 'foo';
+command.define('foo', function(config) { ... }, { ... });
+command.define('bar', function(config) { ... }, { ... });
+command.evaluate();
+```
 
 ### define ( commandName, callback [, configuration ] )
 
@@ -86,13 +114,13 @@ Execute a defined command from within your code.
  
 **Returns** whatever the command returns.
 
-### getCommandUsage ( commandName )
+### getCommandUsage ( [ commandName ] )
 
 Get the help string for the command specified.
 
 **Parameters**
 
-- **commandName** - The name of the command.
+- **commandName** - The name of the command. If omitted then usage for all commands will be returned.
  
 **Returns** a string with the command's help.
 
