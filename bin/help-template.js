@@ -54,6 +54,7 @@ exports.commandList = function(appName, commandStore) {
     } else {
         body = [];
         width = help.width(commands, 35);
+        commands.sort();
         commands.forEach(function(commandName) {
             var brief = commandStore[commandName].configuration.brief || '';
             var left;
