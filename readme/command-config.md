@@ -28,7 +28,19 @@ When the command line arguments are being parsed, any flags that aren't associat
 
 ### groups
 
-In situations where you have many arguments, you can specify groups for those options. You do not define groupings here (look at the options description for that) but here you do specify what the title of each group should be. The value for this property should be an object where property names are the group name and the value is the group title. For example: `{ request: 'Request Options', misc: 'Miscelaneous Options' }`.
+In situations where you have many arguments, you can specify groups for those options. You do not define groupings here (look at the options description for that) but here you do specify what the title (and potentially description) of each group should be. The value for this property should be an object where property names are the group name and the value is either the group title or an object with a title and a description.
+
+For example, if you had defined groups in your options for `request` and `misc` then here you could define the groupings:
+
+```js
+{
+    request: {
+        title: 'Request Options',
+        description: 'These options all relate to the request.
+    },
+    misc: 'Miscelaneous Options'
+}
+```
 
 The order in which groups are assigned titles will affect the order they come out in with the `--help`.
 

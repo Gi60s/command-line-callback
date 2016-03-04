@@ -98,18 +98,20 @@ exports.options = function(config, params) {
         var opt;
         var optKey;
         var optName;
+        var value = groupMap[groupKey];
 
         group = {
             argColumnWidth: 0,
             argNames: [],
+            description: value && typeof value === 'object' ? value.description : '',
             key: groupKey,
-            label: groupMap[groupKey],
+            label: value === null || typeof value === 'string' ? value : value.title,
             options: []
         };
 
         for (i = 0; i < optionKeys.length; i++) {
             optKey = optionKeys[i];
-            optName = optKey.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+            optName = camelToDash(optKey);
             opt = config.options[optKey];
             if (!opt.hidden && ((groupKey === '' && (!opt.group || !groupMap[opt.group])) || opt.group === groupKey)) {
                 found = true;
@@ -143,10 +145,10 @@ exports.options = function(config, params) {
 
         //add the group header
         if (groupIndex > 0) result += '\n';
-        result += help.heading(group.label);
+        result += group.description ? help.section(group.label, group.description) + '\n\n' : help.heading(group.label);
 
         group.options.forEach(function(option, optionIndex) {
-            var argName = group.argNames[optionIndex].replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+            var argName = group.argNames[optionIndex];
             var body;
             var defValue;
             var left;
@@ -195,3 +197,19 @@ exports.options = function(config, params) {
 
     return result.replace(/\n+$/, '');
 };
+
+function camelToDash(str) {
+    var index = 0;
+    var match;
+    var result = '';
+    var rx = /[A-Z]/g;
+    var subStr;
+
+    while (match = rx.exec(str)) {
+        subStr = str.substring(index, match.index).toLowerCase();
+        if (subStr) result += subStr + '-';
+        index = match.index;
+    }
+
+    return result + str.substr(index).toLowerCase();
+}

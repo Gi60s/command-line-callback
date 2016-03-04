@@ -71,7 +71,7 @@ exports.normalize = function(configuration) {
         processProperty(result, 'brief', '', 'a string', is.string);
         processProperty(result, 'description', '', 'a string', is.string);
         processProperty(result, 'defaultOption', '', 'a string', is.string);
-        processProperty(result, 'groups', {}, 'an object mapping group names to string labels', is.objectStringMap);
+        processProperty(result, 'groups', {}, 'an object mapping group names to string labels', is.groupMap);
         processProperty(result, 'options', {}, 'a plain object', is.object);
         processProperty(result, 'sections', [], 'an array of objects like { title: "foo", body: "bar" }', is.arrayOfSections);
         processProperty(result, 'synopsis', [], 'an array of string', is.arrayOfString);

@@ -32,6 +32,20 @@ exports.function = function(value) {
     return typeof value === 'function' || value instanceof Function;
 };
 
+exports.groupMap = function(value) {
+    var i;
+    var keys;
+    var v;
+    if (!exports.object(value)) return false;
+    keys = Object.keys(value);
+    for (i = 0; i < keys.length; i++) {
+        v = keys[i];
+        if (!exports.string(v) && !exports.object(v)) return false;
+        if (exports.object(v) && (!exports.string(v.title) || !exports.string(v.description))) return false;
+    }
+    return true;
+};
+
 exports.number = function(value) {
     return typeof value === 'number' || value instanceof Number;
 };
