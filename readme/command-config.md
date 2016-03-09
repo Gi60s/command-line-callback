@@ -36,7 +36,7 @@ For example, if you had defined groups in your options for `request` and `misc` 
 {
     request: {
         title: 'Request Options',
-        description: 'These options all relate to the request.
+        description: 'These options all relate to the request.'
     },
     misc: 'Miscelaneous Options'
 }
