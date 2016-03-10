@@ -36,10 +36,10 @@ exports.groupMap = function(value) {
     var i;
     var keys;
     var v;
-    if (!exports.object(value)) return false;
+    if (!value || !exports.object(value)) return false;
     keys = Object.keys(value);
     for (i = 0; i < keys.length; i++) {
-        v = keys[i];
+        v = value[keys[i]];
         if (!exports.string(v) && !exports.object(v)) return false;
         if (exports.object(v) && (!exports.string(v.title) || !exports.string(v.description))) return false;
     }

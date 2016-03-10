@@ -3,13 +3,14 @@ var chalk           = require('chalk');
 var format          = require('cli-format');
 var help            = require('./help');
 
-exports.command = function(appName, commandName, config) {
+exports.command = function(commandStore, appName, commandName, config) {
+    var commands = Object.keys(commandStore);
     var result = [];
 
     result.push(help.section(config.title, config.brief));
 
     if (config.synopsis && config.synopsis.length > 0) {
-        result.push(help.synopsis(appName + ' ' + commandName, config.synopsis));
+        result.push(help.synopsis(commands.length > 1 ? appName + ' ' + commandName : appName, config.synopsis));
     }
 
     if (config.description) {

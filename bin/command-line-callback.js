@@ -188,7 +188,7 @@ exports.getCommandUsage = function(command) {
         return helpTemplate.commandList(exports.application, commandStore);
     } else {
         config = commandConfig.normalize(commandStore[command].configuration);
-        return helpTemplate.command(exports.application, command, config);
+        return helpTemplate.command(commandStore, exports.application, command, config);
     }
 };
 
