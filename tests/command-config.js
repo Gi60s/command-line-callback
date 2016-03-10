@@ -198,11 +198,6 @@ describe('command-config', function() {
                 expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
             });
 
-            it('value is array', function() {
-                var input = Object.assign({}, template, { groups: [] });
-                expect(function() { config.normalize(input); }).to.throw(config.error.invalid);
-            });
-
         });
 
         describe('invalid options', function() {
