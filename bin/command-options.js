@@ -74,7 +74,7 @@ exports.missingRequires = function(optionsConfiguration, valuesMap) {
     var config = commandConfig.normalize(optionsConfiguration);
     var requires = [];
     Object.keys(config).forEach(function(name) {
-        if (config[name].required && !valuesMap.hasOwnProperty(name)) requires.push(name);
+        if (config[name].required && !valuesMap.hasOwnProperty(name) && !process.env[config[name].env]) requires.push(name);
     });
     return requires;
 };
