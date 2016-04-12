@@ -1,7 +1,12 @@
 "use strict";
 var Command = require('../index.js');
 
-Command.define('single', callback, {});
+Command.define('single', callback, {
+    brief: 'This is a single command',
+    synopsis: [
+        '[OPTIONS]...'
+    ]
+});
 Command.evaluate();
 
 function callback(config) {

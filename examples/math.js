@@ -96,12 +96,12 @@ Command.define('sum-absolute', sum, {
         '-n 1 -n -2 --number 3',
         '1 -2 3'
     ],
-    defaultOption: 'number',
-    groups: {
+    defaultOption: 'aNumber',
+    /*groups: {
         'number': 'Math Options'
-    },
+    },*/
     options: {
-        number: {
+        aNumber: {
             alias: 'n',
             description: 'A number to add to the sum',
             type: Number,
@@ -110,6 +110,7 @@ Command.define('sum-absolute', sum, {
             transform: function (value) {
                 return Math.abs(value);
             },
+            hidden: true,
             group: 'number'
         }
     }
