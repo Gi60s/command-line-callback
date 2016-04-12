@@ -58,7 +58,7 @@ A boolean value that specifies whether the option can receive more than one valu
 
 ### required
 
-Setting this property to true will cause the program to output a helpful error message when the option is not specified in the command line arguments. Note that if this value is set to true that a defaultValue must not be defined otherwise an error will be thrown.
+Setting this property to true will cause the program to output a helpful error message when the option is not specified in the command line arguments and associated environment variable. Note that if this value is set to true that a defaultValue must not be defined otherwise an error will be thrown.
 
 ### transform
 
