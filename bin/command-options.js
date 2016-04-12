@@ -25,11 +25,15 @@ exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
         errors.push('Missing required option: ' + name);
     });
 
-    //merge default values with values map
+    //merge environment variables and default values with values map
     Object.keys(config).forEach(function(name) {
         var c = config[name];
-        if (!valuesMap.hasOwnProperty(name) && c.hasOwnProperty('defaultValue')) {
-            valuesMap[name] = c.multiple ? [ c.defaultValue ] : c.defaultValue;
+        if (!valuesMap.hasOwnProperty(name)) {
+            if (c.hasOwnProperty('env') && c.env && process.env[c.env]) {
+                valuesMap[name] = c.multiple ? [ process.env[c.env] ] : process.env[c.env];
+            } else if (c.hasOwnProperty('defaultValue')) {
+                valuesMap[name] = c.multiple ? [ c.defaultValue ] : c.defaultValue;
+            }
         }
     });
 
