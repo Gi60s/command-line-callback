@@ -14,49 +14,65 @@ var Command = require('command-line-callback');
 
 // define the command configuration
 var configuration = {
-    brief: 'Echo arguments to the console.',
+    brief: 'Assign a random value to a person.',
     options: {
-        fileName: {
+        fullName: {
             alias: 'f',
-            description: 'A file name.',
+            description: "A person's full name.",
+            env: 'FULL_NAME',
             type: String,
+            validate: function(value) {
+                return value.length >= 0;
+            },
             required: true
         },
         min: {
-            description: 'A non-negative integer.',
+            defaultValue: 0,
+            description: 'The minimum assignable value.',
             type: Number,
             transform: function(value) {
                 return Math.round(value);
-            },
-            validate: function(value) {
-                return value >= 0;
             }
+        },
+        max: {
+            alias: 'x',
+            description: 'The maximum assignable value.',
+            type: Number,
+            required: true
         }
     }
 };
 
 // define the command callback
-function echoHandler(options) {
-    console.log(options);
+function assign(options) {
+    var diff = options.max - options.min;
+    var value = options.min + (Math.random() * diff);
+    console.log(options.fullName + ' assigned value ' + value);
 }
 
 // define the command
-Command.define('echo', echoHandler, configuration);
+Command.define('assign', assign, configuration);
 
-// evaluate the command line arguments
+// evaluate the command line arguments and call the associated command
 Command.evaluate();
 ```
 
 **Execute the Command from the Command Line**
 
 ```sh
-node index.js echo --file-name sample.txt --min 5
+$ node index.js assign --full-name 'Bob Smith' --min 5 -x 10
 ```
 
 Optionally, because just one command is defined it will be called if no command is specified.
 
 ```sh
-node index.js --f sample.txt
+$ node index.js -f "Bob Smith" --max 10
+```
+
+**Get Command Line Help**
+
+```sh
+$ node index.js --help
 ```
 
 ## Quick Links
