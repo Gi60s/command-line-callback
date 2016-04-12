@@ -11,6 +11,7 @@ var config = {
             alias: '',
             defaultValue: undefined,
             description: '',
+            env: '',
             group: '',
             hidden: false,
             multiple: false,
@@ -31,11 +32,17 @@ A one letter string that specifies an alias flag that would be the same as using
 
 ### defaultValue
 
-If this property is included, regardless of the value it contains, then its value will be used to populate one parsed value when no flag for this option is used in the command line arguments. If a default value is specified then required must be set to false, otherwise an error will be thrown.
+This property defines a default value to use if one is not specified through either the command line arguments or through an associated environment variable. If a default value is specified then required must be set to false, otherwise an error will be thrown.
 
 ### description
 
 A detailed description of what the option does. The description can be a string or a function that returns a string. If a function is used then it will receive as its parameter an object that has the app name and command used, like so: `{ app: 'MyApp', command: 'my-command' }`.
+
+### env
+
+The environment variable name to use to populate the value if it was not specified through the command line arguments. If there is no value associated with the environment variable name then the value will not be set.
+
+ If both a defaultValue and an env property are set then the environment variable will have a chance to set the value before the defaultValue is used.
 
 ### group
 
