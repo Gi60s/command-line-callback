@@ -161,6 +161,8 @@ exports.options = function(config, params) {
 
             if (option.multiple) right.push(chalk.dim('[Multiple]'));
 
+            if (option.env) right.push(chalk.dim('[Env Var: ' + option.env + ']'));
+
             if (option.hasOwnProperty('defaultValue')) {
                 if (typeof option.defaultValue === 'object' && option.defaultValue) {
                     defValue = JSON.stringify(option.defaultValue, null, 2);
