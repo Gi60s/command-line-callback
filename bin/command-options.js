@@ -25,9 +25,11 @@ exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
     valuesMap = Object.assign({}, valuesMap);
 
     //load and parse the env file
-    envFilePath = valuesMap.envFile;
-    if (typeof envFilePath === 'undefined' && optionsConfiguration.envFile.hasOwnProperty('defaultValue')) envFilePath = optionsConfiguration.envFile.defaultValue;
-    if (envFilePath) envFileObj = envfile.parseFileSync(path.resolve(process.cwd(), envFilePath));
+    if (optionsConfiguration.hasOwnProperty('envFile')) {
+        envFilePath = valuesMap.envFile;
+        if (typeof envFilePath === 'undefined' && optionsConfiguration.envFile.hasOwnProperty('defaultValue')) envFilePath = optionsConfiguration.envFile.defaultValue;
+        if (envFilePath) envFileObj = envfile.parseFileSync(path.resolve(process.cwd(), envFilePath));
+    }
 
     //merge environment variables and default values with values map
     Object.keys(config).forEach(function(name) {
