@@ -59,7 +59,7 @@ exports.define = function(commandName, callback, configuration) {
     if (!configuration.hasOwnProperty('options')) configuration.options = {};
 
     //add help to the options
-    if (!configuration.options.hasOwnProperty('help') && exports.defaults.helpOption) {
+    if (!configuration.options.hasOwnProperty('help') && exports.settings.helpOption) {
         configuration.options.help = {
             type: Boolean,
             description: 'Get usage details about this command.',
@@ -68,7 +68,7 @@ exports.define = function(commandName, callback, configuration) {
     }
 
     //add the env file option
-    if (!configuration.options.hasOwnProperty('envFile') && exports.defaults.envFileOption) {
+    if (!configuration.options.hasOwnProperty('envFile') && exports.settings.envFileOption) {
         configuration.options.envFile = {
             type: String,
             description: 'The file path to an environment configuration file that is used to populate environment variables.'
@@ -81,15 +81,6 @@ exports.define = function(commandName, callback, configuration) {
         callback: callback,
         configuration: configuration || {}
     };
-};
-
-/**
- * Some default option settings.
- * @type {{envFileOption: boolean, helpOption: boolean}}
- */
-exports.defaults = {
-    envFileOption: false,
-    helpOption: true
 };
 
 /**
@@ -139,8 +130,8 @@ exports.evaluate = function(args) {
         error = createExecuteError(command, normalizedOptions.errors);
 
         //show help
-        if (error && !(config.help && exports.defaults.helpOption)) result += format.wrap(chalk.red(error.message)) + '\n\n';
-        if (error || (config.help && exports.defaults.helpOption)) {
+        if (error && !(config.help && exports.settings.helpOption)) result += format.wrap(chalk.red(error.message)) + '\n\n';
+        if (error || (config.help && exports.settings.helpOption)) {
             result += exports.getCommandUsage(command) + '\n';
             console.log(result);
             return;
@@ -216,6 +207,15 @@ exports.getCommandUsage = function(command) {
  */
 exports.list = function() {
     return Object.keys(commandStore);
+};
+
+/**
+ * Some settings.
+ * @type {{envFileOption: boolean, helpOption: boolean}}
+ */
+exports.settings = {
+    envFileOption: false,
+    helpOption: true
 };
 
 

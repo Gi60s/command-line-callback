@@ -1,4 +1,3 @@
-var defaults                = require('./command-line-callback').defaults;
 var commandConfig           = require('./command-config');
 var CustomError             = require('custom-error-instance');
 var envfile                 = require('envfile');
@@ -22,11 +21,12 @@ exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
     var errors = [];
     var message;
     var result = {};
+    var settings = require('./command-line-callback').settings;
     optionsOnly = typeof optionsOnly === 'undefined' ? true : !!optionsOnly;
     valuesMap = Object.assign({}, valuesMap);
 
     //load and parse the env file
-    if (optionsConfiguration.hasOwnProperty('envFile') && defaults.envFileOption) {
+    if (optionsConfiguration.hasOwnProperty('envFile') && settings.envFileOption) {
         envFilePath = valuesMap.envFile;
         if (typeof envFilePath === 'undefined' && optionsConfiguration.envFile.hasOwnProperty('defaultValue')) envFilePath = optionsConfiguration.envFile.defaultValue;
         if (envFilePath) envFileObj = envfile.parseFileSync(path.resolve(process.cwd(), envFilePath));
