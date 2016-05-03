@@ -134,7 +134,7 @@ exports.normalizeOptions = function(options) {
     if (!exports.isNormalized(options)) {
         result = {};
         Object.keys(options).forEach(function(name) {
-            result[name] = exports.normalizeOption(options[name]);
+            if (options[name]) result[name] = exports.normalizeOption(options[name]);
         });
         markAsNormalized(result);
     }
