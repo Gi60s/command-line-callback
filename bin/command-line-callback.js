@@ -56,13 +56,23 @@ exports.define = function(commandName, callback, configuration) {
     config = commandConfig.normalize(configuration);
     configuration.title = exports.application + ' ' + commandName;
 
-    //add help to the options
+    //make sure that the options property exists in the configuration
     if (!configuration.hasOwnProperty('options')) configuration.options = {};
+
+    //add help to the options
     if (!configuration.options.hasOwnProperty('help')) {
         configuration.options.help = {
             type: Boolean,
             description: 'Get usage details about this command.',
             defaultValue: false
+        };
+    }
+
+    //add the env file option
+    if (!configuration.options.hasOwnProperty('envFile')) {
+        configuration.options.envFile = {
+            type: String,
+            description: 'The file path to a .env file to use to populate environment variables.'
         };
     }
 
