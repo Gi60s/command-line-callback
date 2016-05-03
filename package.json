@@ -6,7 +6,8 @@
   "dependencies": {
     "chalk": "^1.1.1",
     "cli-format": "^3.0.6",
-    "custom-error-instance": "^2.1.1"
+    "custom-error-instance": "^2.1.1",
+    "envfile": "^2.0.1"
   },
   "devDependencies": {
     "chai": "^3.4.1",
