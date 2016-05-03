@@ -72,7 +72,7 @@ exports.define = function(commandName, callback, configuration) {
     if (!configuration.options.hasOwnProperty('envFile')) {
         configuration.options.envFile = {
             type: String,
-            description: 'The file path to a .env file to use to populate environment variables.'
+            description: 'The file path to an environment configuration file that is used to populate environment variables.'
         };
     }
 
