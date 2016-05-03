@@ -29,6 +29,9 @@ describe('command-line-args', function() {
             def: {
                 type: String,
                 multiple: true
+            },
+            envFile: {
+                type: String
             }
         }
     };
