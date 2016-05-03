@@ -83,6 +83,7 @@ describe('command-config', function() {
                 alias: 'n',
                 defaultValue: 0,
                 description: 'A number to add to the sum.',
+                env: "env-file-name",
                 group: 'math',
                 hidden: false,
                 multiple: true,
@@ -255,6 +256,7 @@ function defaultBuild() {
     return {
         alias: '',
         description: '',
+        env: '',
         group: '',
         hidden: false,
         multiple: false,
