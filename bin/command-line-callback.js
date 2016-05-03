@@ -39,8 +39,7 @@ Object.defineProperty(exports, 'defaultCommand', {
  * available to it.
  */
 exports.define = function(commandName, callback, configuration) {
-    var config;
-
+    
     //lowercase the command name
     commandName = commandName.toLowerCase();
 
@@ -52,8 +51,8 @@ exports.define = function(commandName, callback, configuration) {
     //validate that the command is not already defined
     if (commandStore.hasOwnProperty(commandName)) throw new Error('Cannot define command because a command with this name is already defined: ' + commandName);
 
-    //normalize the configuration
-    config = commandConfig.normalize(configuration);
+    //normalize the configuration (for validation)
+    commandConfig.normalize(configuration);
     configuration.title = exports.application + ' ' + commandName;
 
     //make sure that the options property exists in the configuration
