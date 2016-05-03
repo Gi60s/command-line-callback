@@ -121,65 +121,6 @@ exports.options = function(configuration, args, optionsOnly) {
     return commandOptions.normalize(config.options, data, optionsOnly);
 };
 
-exports.rawMap = function(args, defaultOption) {
-    var aliasMap;
-    var ar;
-    var arg;
-    var config;
-    var current;
-    var i;
-    var map = {};
-
-    function create(name) {
-        if (current) map[current].push('');
-        name = dashToCamel(name);
-        if (!map.hasOwnProperty(name)) map[name] = [];
-        current = name;
-    }
-
-    function append(value) {
-        if (!current && defaultOption) {
-            if (!map.hasOwnProperty(defaultOption)) map[defaultOption] = [];
-            map[defaultOption].push(value);
-        } else if (current) {
-            map[current].push(value);
-        }
-        current = false;
-    }
-
-    if (!args) args = exports.args;
-
-    config = commandConfig.normalize(configuration);
-    defaultOption = config.defaultOption;
-    aliasMap = commandConfig.aliasMap(config.options);
-
-    for (i = 0; i < args.length; i++) {
-        arg = args[i];
-
-        if (/=/.test(arg)) {
-            ar = arg.split('=');
-            arg = ar[0];
-            args.splice(i + 1, 0, ar[1]);
-        }
-
-        if (/^-[a-z]/i.test(arg)) {
-            arg = arg.substr(1).split('');
-            arg.map(function(name) { return aliasMap.hasOwnProperty(name) ? aliasMap[name] : name; })
-                .forEach(create);
-
-        } else if (/^--[a-z]/i.test(arg)) {
-            create(arg.substr(2));
-
-        } else {
-            append(arg);
-        }
-    }
-
-    if (current) map[current].push('');
-
-    return map;
-};
-
 function dashToCamel(value) {
     var result = '';
     value.split('-').forEach(function(v, i) {
