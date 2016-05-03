@@ -11,7 +11,8 @@ Command.define('env', callback, {
         name: {
             type: String,
             description: 'A name to greet you by.',
-            env: 'MY_NAME'
+            env: 'MY_NAME',
+            required: true
         },
         envFile: {              // make a reassignment of the default envFile option to include a default value
             type: String,
