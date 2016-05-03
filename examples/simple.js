@@ -18,8 +18,7 @@ var configuration = {
             validate: function(value) {
                 return value >= 0;
             }
-        },
-        envFile: null
+        }
     }
 };
 

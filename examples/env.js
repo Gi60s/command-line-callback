@@ -2,6 +2,9 @@
 var Command = require('../index.js');
 var path = require('path');
 
+// enable the env file option
+Command.defaults.envFileOption = true;
+
 Command.define('env', callback, {
     brief: 'This command requires uses an file path',
     synopsis: [
