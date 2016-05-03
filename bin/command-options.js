@@ -1,5 +1,7 @@
 var commandConfig           = require('./command-config');
 var CustomError             = require('custom-error-instance');
+var envfile                 = require('envfile');
+var path                    = require('path');
 
 var OptionError = CustomError('OptionError');
 
@@ -14,11 +16,18 @@ var OptionError = CustomError('OptionError');
  */
 exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
     var config = commandConfig.normalizeOptions(optionsConfiguration);
+    var envFilePath;
+    var envFileObj = {};
     var errors = [];
     var message;
     var result = {};
     optionsOnly = typeof optionsOnly === 'undefined' ? true : !!optionsOnly;
     valuesMap = Object.assign({}, valuesMap);
+
+    //load and parse the env file
+    envFilePath = valuesMap.envFile;
+    if (typeof envFilePath === 'undefined' && optionsConfiguration.envFile.hasOwnProperty('defaultValue')) envFilePath = optionsConfiguration.envFile.defaultValue;
+    if (envFilePath) envFileObj = envfile.parseFileSync(path.resolve(process.cwd(), envFilePath));
 
     //find required errors
     exports.missingRequires(config, valuesMap).forEach(function(name) {
@@ -29,7 +38,9 @@ exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
     Object.keys(config).forEach(function(name) {
         var c = config[name];
         if (!valuesMap.hasOwnProperty(name)) {
-            if (c.hasOwnProperty('env') && c.env && process.env[c.env]) {
+            if (c.hasOwnProperty('env') && envFileObj.hasOwnProperty(c.env)) {
+                valuesMap[name] = c.multiple ? [ envFileObj[c.env] ] : envFileObj[c.env];
+            } else if (c.hasOwnProperty('env') && c.env && process.env[c.env]) {
                 valuesMap[name] = c.multiple ? [ process.env[c.env] ] : process.env[c.env];
             } else if (c.hasOwnProperty('defaultValue')) {
                 valuesMap[name] = c.multiple ? [ c.defaultValue ] : c.defaultValue;
