@@ -29,11 +29,6 @@ exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
     if (typeof envFilePath === 'undefined' && optionsConfiguration.envFile.hasOwnProperty('defaultValue')) envFilePath = optionsConfiguration.envFile.defaultValue;
     if (envFilePath) envFileObj = envfile.parseFileSync(path.resolve(process.cwd(), envFilePath));
 
-    //find required errors
-    exports.missingRequires(config, valuesMap).forEach(function(name) {
-        errors.push('Missing required option: ' + name);
-    });
-
     //merge environment variables and default values with values map
     Object.keys(config).forEach(function(name) {
         var c = config[name];
@@ -46,6 +41,11 @@ exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
                 valuesMap[name] = c.multiple ? [ c.defaultValue ] : c.defaultValue;
             }
         }
+    });
+
+    //find required errors
+    exports.missingRequires(config, valuesMap).forEach(function(name) {
+        errors.push('Missing required option: ' + name);
     });
 
     //normalize each value
