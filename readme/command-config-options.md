@@ -74,7 +74,7 @@ The validate function is used to validate the value after it has had its *type* 
 
 ## Env-File Option
 
-The `env-file` option, by default, is used to specify the file path to an environment configuration file. This file can be used in conjunction with an option's `env` property to define arguments through a file.
+The `env-file` option can be used to specify the file path to an environment configuration file. This file can be used in conjunction with an option's `env` property to define arguments through a file.
 
 By default this functionality is disabled.
 
