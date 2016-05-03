@@ -71,3 +71,97 @@ The type specifies the parser that will be used to convert from the string suppl
 ### validate
 
 The validate function is used to validate the value after it has had its *type* conversion. If this function returns false then a generic error message will be produced. If it returns a string then that string will be used to generate an error message. If it returns true then the validation passes.
+
+## Env-File Option
+
+The `env-file` option, by default, is used to specify the file path to an environment configuration file. This file can be used in conjunction with an option's `env` property to define arguments through a file.
+
+By default this functionality is disabled.
+
+### Enabling the Env-File Option
+
+You can turn off the `env-file` option for all commands through the settings:
+
+```js
+var Command = require('command-line-callback');
+Command.settings.envFileOption = true;
+```
+
+Once enabled, if you do not want some commands to have the `env-file` option then you can disable it on a command by command basis by setting option to a falsy value.
+
+```js
+var Command = require('command-line-callback');
+
+// enable env-file options
+Command.settings.envFileOption = true;
+
+// disable env-file option for this command
+var configuration = {
+    brief: 'A modified help option.',
+    options: {
+        envFile: false
+    }
+};
+
+Command.define('noEnvFile', function(config) { ... }, configuration);
+
+Command.evaluate();
+```
+
+## Help Option
+
+The `help` option is enabled by default. When enabled:
+
+1. A `--help` option is automatically added to each command.
+2. Adding the `--help` flag to any command will output the help.
+
+### Editing the Help Option
+
+Even with the `help` option enabled by default, you can still modify the details of the option. Including the `--help` flag with the command will still output the help.
+
+```js
+var Command = require('command-line-callback');
+
+var configuration = {
+    brief: 'A modified help option.',
+    options: {
+        help: {
+            alias: 'h',
+            description: 'Get help',
+            type: Boolean
+        }
+    }
+};
+
+Command.define('helpMod', function(config) { ... }, configuration);
+
+Command.evaluate();
+```
+
+### Disabling the Help Option
+
+You can turn off the `help` option for all commands through the settings:
+
+```js
+var Command = require('command-line-callback');
+Command.settings.helpOption = false;
+```
+
+If you want to disable help for a single command, you can set the `help` option to a falsy value.
+
+```js
+var Command = require('command-line-callback');
+
+var configuration = {
+    brief: 'A command without help.',
+    options: {
+        help: false
+    }
+};
+
+Command.define('helpless', function(config) { ... }, configuration);
+
+Command.evaluate();
+```
+
+When the `help` option has been disabled, adding the `--help` flag to a command will not output the system help, even if the command had an option `help` defined.

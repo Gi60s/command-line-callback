@@ -3,7 +3,7 @@
 
 # command-line-callback
 
-Create git-style command structure that calls functions within your application. Defined commands can also produce help output when the `--help` flag is used.
+Create git-style command structure that calls functions within your application. Defined commands can also produce [help output](./readme/command-config-options.md#help-option) when the `--help` flag is used and can accept environment variables and [environment files](./readme/command-config-options.md#env-file-option).
 
 ## Usage Example
 
