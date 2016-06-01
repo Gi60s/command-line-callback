@@ -1,6 +1,6 @@
 var commandConfig           = require('./command-config');
 var CustomError             = require('custom-error-instance');
-var envfile                 = require('envfile');
+var envfile                 = require('./envfile');
 var path                    = require('path');
 
 var OptionError = CustomError('OptionError');
@@ -29,17 +29,20 @@ exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
     if (optionsConfiguration.hasOwnProperty('envFile') && settings.envFileOption) {
         envFilePath = valuesMap.envFile;
         if (typeof envFilePath === 'undefined' && optionsConfiguration.envFile.hasOwnProperty('defaultValue')) envFilePath = optionsConfiguration.envFile.defaultValue;
-        if (envFilePath) envFileObj = envfile.parseFileSync(path.resolve(process.cwd(), envFilePath));
+        if (envFilePath) envFileObj = envfile(path.resolve(process.cwd(), envFilePath));
     }
 
     //merge environment variables and default values with values map
     Object.keys(config).forEach(function(name) {
         var c = config[name];
+        var v;
         if (!valuesMap.hasOwnProperty(name)) {
             if (c.hasOwnProperty('env') && envFileObj.hasOwnProperty(c.env)) {
-                valuesMap[name] = c.multiple ? [ envFileObj[c.env] ] : envFileObj[c.env];
+                valuesMap[name] = c.multiple ? envFileObj[c.env] : envFileObj[c.env].slice(-1)[0];
             } else if (c.hasOwnProperty('env') && c.env && process.env[c.env]) {
-                valuesMap[name] = c.multiple ? [ process.env[c.env] ] : process.env[c.env];
+                v = process.env[c.env];
+                if (!Array.isArray(v)) v = [ v ];
+                valuesMap[name] = c.multiple ? v : v.slice(-1)[0];
             } else if (c.hasOwnProperty('defaultValue')) {
                 valuesMap[name] = c.multiple ? [ c.defaultValue ] : c.defaultValue;
             }

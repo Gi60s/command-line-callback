@@ -1,13 +1,12 @@
 {
   "name": "command-line-callback",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "description": "Implement a command line interface that calls functions within your application.",
   "main": "index.js",
   "dependencies": {
     "chalk": "^1.1.1",
     "cli-format": "^3.0.6",
-    "custom-error-instance": "^2.1.1",
-    "envfile": "^2.0.1"
+    "custom-error-instance": "^2.1.1"
   },
   "devDependencies": {
     "chai": "^3.4.1",

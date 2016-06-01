@@ -1,1 +1,3 @@
 MY_NAME = Jane
+FOO: 1
+FOO = 2

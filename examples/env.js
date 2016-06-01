@@ -6,7 +6,7 @@ var path = require('path');
 Command.settings.envFileOption = true;
 
 Command.define('env', callback, {
-    brief: 'This command requires uses an file path',
+    brief: 'This command accepts environment variables',
     synopsis: [
         '[OPTIONS]...'
     ],
@@ -16,6 +16,12 @@ Command.define('env', callback, {
             description: 'A name to greet you by.',
             env: 'MY_NAME',
             required: true
+        },
+        foo: {
+            type: String,
+            description: 'Foo',
+            env: 'FOO',
+            multiple: true
         },
         envFile: {              // make a reassignment of the default envFile option to include a default value
             type: String,
@@ -28,4 +34,5 @@ Command.evaluate();
 
 function callback(config) {
     console.log('Hello, ' + config.name);
+    console.log(config.foo);
 }
