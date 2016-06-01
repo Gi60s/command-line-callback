@@ -29,6 +29,36 @@ Object.defineProperty(exports, 'defaultCommand', {
 });
 
 /**
+ * Get a normalized configuration for the options specified.
+ * @param {string} command The name of the command.
+ * @param {object} [options={}] The options to normalize.
+ * @returns {object}
+ * @throws {Error}
+ */
+exports.config = function(command, options) {
+    var config;
+    var error;
+    var item;
+    var normalizedOptions;
+
+    //validate that command exists
+    if (!commandStore.hasOwnProperty(command)) {
+        throw new Error('Cannot get configuration for command "' + command + '" because it is not defined.');
+    }
+
+    //get command and normalize options
+    item = commandStore[command];
+    normalizedOptions = commandOptions.normalize(item.configuration.options, options || {}, false);
+    config = normalizedOptions.options;
+
+    error = createExecuteError(command, normalizedOptions.errors);
+    if (error) throw error;
+
+    //return the configuration
+    return config
+};
+
+/**
  * Define a command that should be accessible from the command line by using the
  * specified command name.
  * @param {string} commandName The name of the command as it will be called from the command line.
@@ -163,25 +193,17 @@ exports.evaluate = function(args) {
  */
 exports.execute = function(command, options) {
     var config;
-    var error;
-    var item;
-    var normalizedOptions;
 
     //validate that command exists
     if (!commandStore.hasOwnProperty(command)) {
         throw new Error('Cannot execute command "' + command + '" because it is not defined.');
     }
 
-    //get command and normalize options
-    item = commandStore[command];
-    normalizedOptions = commandOptions.normalize(item.configuration.options, options, false);
-    config = normalizedOptions.options;
-
-    error = createExecuteError(command, normalizedOptions.errors);
-    if (error) throw error;
+    //get normalized options
+    config = exports.config(command, options);
 
     //execute the command
-    return item.callback(config);
+    return commandStore[command].callback(config);
 };
 
 

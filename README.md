@@ -97,6 +97,15 @@ command.define('bar', function(config) { ... }, { ... });
 command.evaluate();
 ```
 
+### config ( commandName [, options ] )
+
+Get a normalized configuration for the specified command. The configuration returned from this function can be passed directly into the callback function that was defined for this command.
+
+- **commandName** - The name of the command.
+- **options** - An object with key value pairs to pass to the command callback. This object will have it's values validated and transformed, but the values will not go through the type parser.
+
+**Returns** a normalized and validated configuration object.
+
 ### define ( commandName, callback [, configuration ] )
 
 Define a git-style command, the function it should call, and the configuration options that link the command line to the callback.
