@@ -69,8 +69,9 @@ exports.commandList = function(appName, commandStore) {
 
             body.push(help.columns([left, brief]));
         });
+        body = body.join('\n\n');
     }
-    result.push(help.heading('Available Commands') + body.join('\n\n'));
+    result.push(help.heading('Available Commands') + body);
 
     return result.join('\n\n') + '\n';
 };
