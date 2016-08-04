@@ -89,6 +89,7 @@ exports.normalize = function(configuration) {
  */
 exports.normalizeOption = function(option) {
     var result = option;
+    var validates;
 
     if (!is.plainObject(option)) throw Err.invalid({ message: 'Invalid configuration option.', expected: 'an object', received: option });
     if (!exports.isNormalized(option)) {
@@ -106,8 +107,12 @@ exports.normalizeOption = function(option) {
 
         if (result.required && result.hasOwnProperty('defaultValue')) {
             throw Err('Command configuration option cannot have required as true and a default value because they are mutually exclusive');
-        } else if (!result.required && result.hasOwnProperty('defaultValue') && !result.validate(result.defaultValue)) {
-            throw Err('Command configuration option defaultValue does not pass validation.');
+        } else if (!result.required && result.hasOwnProperty('defaultValue')) {
+            validates =  result.validate(result.defaultValue);
+            if (validates !== true) {
+                throw Err('Command configuration option defaultValue [' + result.defaultValue + 
+                    '] does not pass validation.' + (typeof validates === 'string' ? ' Reason: ' + validates : ''));
+            }
         }
 
         markAsNormalized(result);

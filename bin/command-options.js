@@ -105,12 +105,17 @@ exports.missingRequires = function(optionsConfiguration, valuesMap) {
  */
 exports.normalizeValue = function(optionConfiguration, value, name) {
     var config = commandConfig.normalizeOption(optionConfiguration);
-    var errName = name ? ' for option: ' + name : '';
+    var errName = name ? ' for option "' + name : '"';
     var isArray = Array.isArray(value);
     var result;
 
     function normalize(value) {
-        if (!config.validate(value)) throw new OptionError('Option validation failed' + errName + ' with value: ' + value);
+        var validates = config.validate(value);
+        if (validates !== true) {
+            var msg = 'Option validation failed' + errName + ' with value [' + value + '].';
+            if (typeof validates === 'string') msg += ' Reason: ' + validates;
+            throw new OptionError(msg);
+        }
         value = config.transform(value);
         return value;
     }
