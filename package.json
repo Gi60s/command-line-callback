@@ -1,6 +1,6 @@
 {
   "name": "command-line-callback",
-  "version": "2.6.1",
+  "version": "2.6.2",
   "description": "Implement a command line interface that calls functions within your application.",
   "main": "index.js",
   "dependencies": {
