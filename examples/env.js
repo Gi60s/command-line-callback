@@ -5,6 +5,9 @@ var path = require('path');
 // enable the env file option
 Command.settings.envFileOption = true;
 
+// enable the env var multiple option
+Command.settings.envVarMultiple = true;
+
 Command.define('env', callback, {
     brief: 'This command accepts environment variables',
     synopsis: [

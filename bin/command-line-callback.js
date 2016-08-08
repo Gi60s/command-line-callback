@@ -236,7 +236,9 @@ exports.list = function() {
  * @type {{envVarMultiple: boolean, envFileOption: boolean, helpOption: boolean}}
  */
 exports.settings = {
-    envVarMultiple: false,      // if set to true and option is multiple then the env var can represent multiple values via JSON array
+    envVarMultiple: false,      // if set to true and option is multiple then the env var can represent multiple
+                                // values via JSON array. This option exists to introduce a feature without breaking
+                                // backward compatibility
     envFileOption: false,       // whether to enable to use of env files
     helpOption: true            // whether to show the help option
 };

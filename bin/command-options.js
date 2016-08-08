@@ -36,11 +36,18 @@ exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
     Object.keys(config).forEach(function(name) {
         var c = config[name];
         var v;
+        var temp;
         if (!valuesMap.hasOwnProperty(name)) {
             if (c.hasOwnProperty('env') && envFileObj.hasOwnProperty(c.env)) {
                 valuesMap[name] = c.multiple ? envFileObj[c.env] : envFileObj[c.env].slice(-1)[0];
             } else if (c.hasOwnProperty('env') && c.env && process.env[c.env]) {
                 v = process.env[c.env];
+                if (settings.envVarMultiple && c.multiple) {
+                    try {
+                        temp = JSON.parse(v);
+                        if (Array.isArray(temp)) v = temp;
+                    } catch (e) { }
+                }
                 if (!Array.isArray(v)) v = [ v ];
                 valuesMap[name] = c.multiple ? v : v.slice(-1)[0];
             } else if (c.hasOwnProperty('defaultValue')) {
