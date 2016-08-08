@@ -44,6 +44,12 @@ The environment variable name to use to populate the value if it was not specifi
 
  If both a defaultValue and an env property are set then the environment variable will have a chance to set the value before the defaultValue is used.
 
+ If you have an option that has [multiple](#multiple) set to true and you want your application to allow for multiple inputs through a single environment variable, then you should use the `:` character to split the values. If your values include the `:` character then you'll need to use quotes:
+
+  ```sh
+ MY_ENV_VAR='foo:"bar:none":baz'
+ ```
+
 ### group
 
 The name of the group that this option belongs to. The *command configuration* object must define groups and their associated titles before this option does anything.

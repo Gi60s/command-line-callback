@@ -42,14 +42,8 @@ exports.normalize = function(optionsConfiguration, valuesMap, optionsOnly) {
                 valuesMap[name] = c.multiple ? envFileObj[c.env] : envFileObj[c.env].slice(-1)[0];
             } else if (c.hasOwnProperty('env') && c.env && process.env[c.env]) {
                 v = process.env[c.env];
-                if (settings.envVarMultiple && c.multiple) {
-                    try {
-                        temp = JSON.parse(v);
-                        if (Array.isArray(temp)) v = temp;
-                    } catch (e) { }
-                }
-                if (!Array.isArray(v)) v = [ v ];
-                valuesMap[name] = c.multiple ? v : v.slice(-1)[0];
+                console.log(v);
+                valuesMap[name] = c.multiple ? splitByCharacterNotInQuotes(':', v) : v;
             } else if (c.hasOwnProperty('defaultValue')) {
                 valuesMap[name] = c.multiple ? [ c.defaultValue ] : c.defaultValue;
             }
@@ -137,3 +131,30 @@ exports.normalizeValue = function(optionConfiguration, value, name) {
 
     return result;
 };
+
+function splitByCharacterNotInQuotes(char, value) {
+    const results = [];
+    var prevCh = '';
+    var ch;
+    var i;
+    var inQuote = '';
+    var running = '';
+    for (i = 0; i < value.length; i++) {
+        ch = value.substr(i, 1);
+        if (prevCh !== '\\' && (ch === "'" || ch === '"')) {
+            if (!inQuote) {
+                inQuote = ch;
+            } else if (inQuote === ch) {
+                inQuote = '';
+            }
+        } else if (ch === char && !inQuote) {
+            results.push(running);
+            running = '';
+        } else {
+            running += ch;
+        }
+        prevCh = ch;
+    }
+    results.push(running);
+    return results;
+}
