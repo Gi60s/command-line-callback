@@ -233,11 +233,12 @@ exports.list = function() {
 
 /**
  * Some settings.
- * @type {{envFileOption: boolean, helpOption: boolean}}
+ * @type {{envVarMultiple: boolean, envFileOption: boolean, helpOption: boolean}}
  */
 exports.settings = {
-    envFileOption: false,
-    helpOption: true
+    envVarMultiple: false,      // if set to true and option is multiple then the env var can represent multiple values via JSON array
+    envFileOption: false,       // whether to enable to use of env files
+    helpOption: true            // whether to show the help option
 };
 
 
